@@ -1,0 +1,460 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content">
+<meta name="color-scheme" content="dark">
+<title>Text War</title>
+<style>
+  :root { --bg:#0d0f15; --card:#161923; --line:#262a39; --txt:#e9eaf2; --mute:#8a8fa5; --acc:#8f76ff; --acc2:#6c4dff; --danger:#ff5468; }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html, body { margin:0; height:100%; }
+  body { background:var(--bg); color:var(--txt); font-family:system-ui,-apple-system,"Segoe UI",sans-serif; display:flex; flex-direction:column; height:100dvh; overflow:hidden; }
+
+  #local { display:none; font-size:12px; background:#3a2d0a; color:#ffd98a; padding:5px 12px; text-align:center; }
+
+  .top { background:var(--card); border-bottom:1px solid var(--line); padding:10px 14px; display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+  h1 { font-size:18px; margin:0; letter-spacing:-.3px; }
+  h1 span { background:linear-gradient(135deg,var(--acc),#b9a8ff); -webkit-background-clip:text; background-clip:text; color:transparent; }
+
+  #name { font:inherit; color:var(--txt); background:#0d0f15; border:1px solid var(--line); border-radius:10px; padding:8px 12px; outline:none; width:120px; min-width:0; }
+  #name:focus { border-color:var(--acc); box-shadow:0 0 0 3px #8f76ff30; }
+
+  .seg { display:flex; background:#0d0f15; border:1px solid var(--line); border-radius:12px; padding:3px; gap:2px; margin-left:auto; }
+  .seg button { font:inherit; font-size:14px; border:0; background:transparent; color:var(--mute); padding:7px 12px; border-radius:9px; cursor:pointer; transition:.15s; }
+  .seg button.on { background:var(--acc2); color:#fff; font-weight:600; }
+  .seg button#mBomb.on { background:var(--danger); }
+
+  #name { display:none !important; }
+  #linkRow { display:none; gap:8px; padding:8px 12px; background:var(--card); border-top:1px solid var(--line); }
+  #linkRow input { flex:1; min-width:0; font:inherit; color:var(--txt); background:#0d0f15; border:1px solid var(--line); border-radius:10px; padding:9px 12px; outline:none; }
+  #linkRow input:focus { border-color:var(--acc); }
+  #linkRow button { font:inherit; font-weight:600; border:0; border-radius:10px; padding:0 16px; cursor:pointer; color:#fff; background:var(--acc2); }
+  .meBtn { font:inherit; font-size:14px; color:var(--txt); background:#0d0f15; border:1px solid var(--line); border-radius:10px; padding:8px 12px; cursor:pointer; }
+  #login { position:fixed; inset:0; background:#0d0f15f2; display:none; align-items:center; justify-content:center; z-index:20; padding:16px; }
+  #login .card { background:var(--card); border:1px solid var(--line); border-radius:18px; padding:22px; width:100%; max-width:340px; display:flex; flex-direction:column; gap:10px; box-shadow:0 20px 60px #000a; }
+  #login h2 { margin:0 0 4px; font-size:20px; }
+  #login p { margin:0 0 6px; color:var(--mute); font-size:13px; }
+  #login input { font:inherit; color:var(--txt); background:#0d0f15; border:1px solid var(--line); border-radius:10px; padding:11px 12px; outline:none; }
+  #login input:focus { border-color:var(--acc); box-shadow:0 0 0 3px #8f76ff30; }
+  #login .b { font:inherit; font-weight:600; border:0; border-radius:10px; padding:11px; cursor:pointer; color:#fff; background:linear-gradient(135deg,var(--acc),var(--acc2)); }
+  #login .b.alt { background:transparent; border:1px solid var(--line); color:var(--txt); font-weight:500; }
+  #login .b.ghost { background:transparent; color:var(--mute); font-weight:400; font-size:13px; padding:6px; }
+  #loginErr { color:var(--danger); font-size:13px; min-height:16px; }
+  #wrap { flex:1; overflow:auto; position:relative; background:var(--bg); }
+  #sheet { display:inline-block; margin:14px; border-radius:6px; box-shadow:0 8px 30px #000a, 0 0 0 1px var(--line); background:#fff; line-height:0; }
+  canvas { display:block; cursor:text; background:#fff; border-radius:6px; touch-action:manipulation; }
+
+  /* champ caché qui capte le clavier */
+  #kb { position:fixed; left:0; bottom:0; width:1px; height:1px; opacity:0; border:0; padding:0; font-size:16px; pointer-events:none; }
+
+  /* barre du bas : couleurs */
+  #dock { background:var(--card); border-top:1px solid var(--line); padding:10px 12px calc(10px + env(safe-area-inset-bottom)); display:flex; gap:10px; align-items:center; }
+  #swatches { display:flex; gap:9px; overflow-x:auto; flex:1; padding:3px 2px; scrollbar-width:none; }
+  #swatches::-webkit-scrollbar { display:none; }
+  .sw { flex:none; width:32px; height:32px; border-radius:50%; border:2px solid #0d0f15; box-shadow:0 0 0 1px var(--line); cursor:pointer; padding:0; }
+  .sw.on { box-shadow:0 0 0 2px var(--acc); transform:scale(1.1); }
+  .tool { flex:none; width:40px; height:40px; border-radius:12px; border:1px solid var(--line); background:#0d0f15; color:var(--txt); font-size:18px; cursor:pointer; position:relative; padding:0; display:flex; align-items:center; justify-content:center; }
+  .tool.on { border-color:var(--acc); background:#8f76ff22; }
+  #custom { opacity:0; position:absolute; inset:0; width:100%; height:100%; cursor:pointer; padding:0; border:0; }
+  #customDot { width:22px; height:22px; border-radius:50%; background:conic-gradient(red,yellow,lime,cyan,blue,magenta,red); }
+
+  #dockInfo { display:none; background:var(--card); border-top:1px solid var(--line); padding:12px 14px calc(12px + env(safe-area-inset-bottom)); font-size:14px; color:var(--mute); text-align:center; }
+
+  #msg { position:fixed; left:50%; bottom:90px; transform:translate(-50%,10px); background:#000d; color:#fff; border:1px solid var(--line); padding:9px 16px; border-radius:22px; opacity:0; transition:.25s; pointer-events:none; font-size:14px; z-index:5; }
+  #msg.show { opacity:1; transform:translate(-50%,0); }
+
+  @media (max-width:560px) { #name { width:96px; } h1 { font-size:16px; } .seg button { padding:7px 9px; font-size:13px; } }
+</style>
+</head>
+<body>
+<div id="local">⚠️ Mode local : Firebase n'est pas configuré, personne d'autre ne voit tes textes (voir le README).</div>
+
+<div class="top">
+  <h1>🧱 <span>Text War</span></h1>
+  <input id="name" placeholder="Pseudo" maxlength="20">
+  <button id="me" class="meBtn">🔑 Connexion</button>
+  <div class="seg">
+    <button id="mWrite" class="on">✍️ Écrire</button>
+    <button id="mBomb">💣 Bombe</button>
+    <button id="mRead">🔍 Lire</button>
+  </div>
+</div>
+
+<div id="wrap"><div id="sheet"><canvas id="cv"></canvas></div></div>
+
+<input id="kb" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="enter" aria-label="Clavier">
+
+<div id="linkRow">
+  <input id="linkIn" type="url" placeholder="🔗 https://… (vide = pas de lien)" autocomplete="off" autocapitalize="off" spellcheck="false">
+  <button id="linkOk" type="button">OK</button>
+</div>
+
+<div id="dock">
+  <div id="swatches"></div>
+  <div class="tool" id="customWrap" title="Autre couleur"><div id="customDot"></div><input id="custom" type="color" value="#e63946"></div>
+  <button class="tool" id="linkBtn" title="Ajouter un lien">🔗</button>
+</div>
+<div id="dockInfo"></div>
+<div id="msg"></div>
+
+<div id="login">
+  <form class="card" id="loginForm" autocomplete="on">
+    <h2>🧱 Text War</h2>
+    <p>Choisis un pseudo et un mot de passe pour écrire sur le mur.</p>
+    <input id="lUser" name="username" placeholder="Pseudo (3-20 lettres, chiffres, _)" maxlength="20" autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false">
+    <input id="lPass" name="password" type="password" placeholder="Mot de passe (6 caractères min.)" autocomplete="current-password">
+    <div id="loginErr"></div>
+    <button class="b" type="submit" id="bIn">Se connecter</button>
+    <button class="b alt" type="button" id="bUp">Créer un compte</button>
+    <button class="b ghost" type="button" id="bSkip">Fermer</button>
+  </form>
+  <div class="card" id="acct" style="display:none">
+    <h2 id="acctName"></h2>
+    <p>Tu es connecté, tu peux écrire sur le mur.</p>
+    <button class="b alt" type="button" id="bOut">Se déconnecter</button>
+    <button class="b ghost" type="button" id="bClose">Fermer</button>
+  </div>
+</div>
+
+<script>
+// ====== CONFIG ======
+// Colle ici l'URL de ta Realtime Database Firebase (sans slash final), ex :
+// const DB_URL = 'https://mon-projet-default-rtdb.europe-west1.firebasedatabase.app';
+const DB_URL = 'https://words-war-fc84c-default-rtdb.europe-west1.firebasedatabase.app';
+// Clé API Web de ton projet Firebase (Paramètres du projet → Général → « Clé API Web »).
+// Elle sert à la connexion pseudo + mot de passe. Elle n'est pas secrète.
+const API_KEY = 'AIzaSyA-Xm_dU5-IGiKhqFOmLJt5dMSuwkq9WPg';
+
+const W = 100, H = 60;        // taille du canevas
+const CS = 20;                // taille d'une case en px
+const BOMB_R = 3;
+const COLORS = ['#111111', '#e63946', '#ff8c1a', '#f4c20d', '#2eb872', '#14b8c4', '#2f6df6', '#7c3aed', '#e83e9c', '#8a8fa5'];
+
+// ====== OUTILS ======
+const $ = (id) => document.getElementById(id);
+const cv = $('cv'), ctx = cv.getContext('2d'), kb = $('kb');
+let cells = {}, mode = 'write', cursor = null, startX = 0, hover = null, blink = true;
+let color = COLORS[0], link = '';
+const SENT = '​';       // caractère « sentinelle » pour détecter la touche effacer sur mobile
+
+function ls(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch {} }
+const storageOK = (() => { try { localStorage.setItem('tw_probe', '1'); localStorage.removeItem('tw_probe'); return true; } catch { return false; } })();
+$('name').value = ls('tw_name') || '';
+$('name').oninput = () => ls('tw_name', $('name').value);
+if (!DB_URL) $('local').style.display = 'block';
+
+function toast(t) { const m = $('msg'); m.textContent = t; m.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => m.classList.remove('show'), 2200); }
+function safeUrl(u) { u = String(u || '').trim().slice(0, 300); return /^https?:\/\//i.test(u) ? u : ''; }
+function safeCol(c) { return /^#[0-9a-f]{6}$/i.test(c) ? c : '#111111'; }
+
+// ====== STOCKAGE (Firebase REST, ou localStorage en secours) ======
+async function loadCells() {
+  if (!DB_URL) { try { return JSON.parse(ls('tw_cells') || '{}'); } catch { return {}; } }
+  const r = await fetch(DB_URL + '/cells.json');
+  return (await r.json()) || {};
+}
+async function patchCells(obj) {   // obj : { "x,y": {…} ou null pour supprimer }
+  if (!DB_URL) {
+    const all = JSON.parse(ls('tw_cells') || '{}');
+    for (const k in obj) { if (obj[k] === null) delete all[k]; else all[k] = obj[k]; }
+    ls('tw_cells', JSON.stringify(all));
+    return;
+  }
+  const t = await getToken();
+  if (!t) { showLogin(); throw new Error('Non connecté'); }
+  const r = await fetch(DB_URL + '/cells.json?auth=' + encodeURIComponent(t), { method: 'PATCH', body: JSON.stringify(obj) });
+  if (!r.ok) throw new Error('Erreur serveur');
+}
+
+// Les touches tapées s'affichent tout de suite, puis partent au serveur par petits paquets
+let pending = {}, inflight = {}, flushTimer = null;
+function setCell(k, val) {
+  if (val === null) delete cells[k]; else cells[k] = val;
+  pending[k] = val;
+  clearTimeout(flushTimer);
+  flushTimer = setTimeout(flush, 350);
+}
+async function flush() {
+  if (!Object.keys(pending).length) return;
+  inflight = { ...inflight, ...pending }; const sent = pending; pending = {};
+  try { await patchCells(sent); } catch { toast('Erreur de connexion'); }
+  for (const k in sent) if (inflight[k] === sent[k]) delete inflight[k];
+}
+
+// ====== COMPTE (pseudo + mot de passe, via Firebase Auth) ======
+let user = null;   // { name, refreshToken, idToken, exp }
+const AUTH_URL = 'https://identitytoolkit.googleapis.com/v1/accounts:';
+const pseudoEmail = (p) => p.toLowerCase() + '@textwar.example';
+const myName = () => (user ? user.name : 'Anonyme').slice(0, 20);
+
+async function authCall(method, body) {
+  const r = await fetch(AUTH_URL + method + '?key=' + API_KEY, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  const j = await r.json();
+  if (!r.ok) throw new Error((j.error && j.error.message) || 'ERREUR');
+  return j;
+}
+function authMsg(e) {
+  const m = String(e.message || e);
+  if (m.includes('EMAIL_EXISTS')) return 'Ce pseudo est déjà pris.';
+  if (m.includes('WEAK_PASSWORD')) return 'Mot de passe trop court (6 caractères minimum).';
+  if (m.includes('INVALID_LOGIN') || m.includes('EMAIL_NOT_FOUND') || m.includes('INVALID_PASSWORD')) return 'Pseudo ou mot de passe incorrect.';
+  if (m.includes('TOO_MANY')) return 'Trop d\'essais, réessaie plus tard.';
+  if (m.includes('OPERATION_NOT_ALLOWED')) return 'Active « E-mail/Mot de passe » dans Firebase → Authentication.';
+  return 'Erreur : ' + m;
+}
+function setSession(j, name) {
+  user = { name, refreshToken: j.refreshToken, idToken: j.idToken, exp: Date.now() + (parseInt(j.expiresIn) || 3600) * 1000 };
+  ls('tw_session', JSON.stringify({ name, refreshToken: j.refreshToken }));
+  updateMe();
+}
+async function signIn(pseudo, pass) {
+  const j = await authCall('signInWithPassword', { email: pseudoEmail(pseudo), password: pass, returnSecureToken: true });
+  setSession(j, j.displayName || pseudo);
+}
+async function signUp(pseudo, pass) {
+  const j = await authCall('signUp', { email: pseudoEmail(pseudo), password: pass, returnSecureToken: true });
+  await authCall('update', { idToken: j.idToken, displayName: pseudo, returnSecureToken: false });
+  await signIn(pseudo, pass);     // nouveau jeton qui contient le pseudo
+}
+async function getToken() {
+  if (!user) return null;
+  if (user.exp - Date.now() > 60000) return user.idToken;
+  try {
+    const r = await fetch('https://securetoken.googleapis.com/v1/token?key=' + API_KEY, {
+      method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: 'grant_type=refresh_token&refresh_token=' + encodeURIComponent(user.refreshToken) });
+    const j = await r.json();
+    if (!r.ok) throw new Error('refresh');
+    user.idToken = j.id_token; user.refreshToken = j.refresh_token; user.exp = Date.now() + parseInt(j.expires_in) * 1000;
+    ls('tw_session', JSON.stringify({ name: user.name, refreshToken: user.refreshToken }));
+    return user.idToken;
+  } catch { signOut(); return null; }
+}
+function signOut() { user = null; ls('tw_session', ''); updateMe(); }
+function updateMe() {
+  $('me').textContent = user ? '👤 ' + user.name : '🔑 Connexion';
+}
+function showLogin() {
+  $('loginForm').style.display = 'flex'; $('acct').style.display = 'none';
+  $('login').style.display = 'flex'; kb.blur(); setTimeout(() => $('lUser').focus(), 50);
+}
+function showAccount() {
+  $('loginForm').style.display = 'none'; $('acct').style.display = 'flex';
+  $('acctName').textContent = '👤 ' + user.name; $('login').style.display = 'flex'; kb.blur();
+}
+function hideLogin() { $('login').style.display = 'none'; $('loginErr').textContent = ''; }
+async function doAuth(fn) {
+  if (!DB_URL || !API_KEY) { $('loginErr').textContent = 'Firebase n\'est pas configuré : remplis DB_URL et API_KEY dans index.html.'; return; }
+  const p = $('lUser').value.trim(), w = $('lPass').value;
+  if (!/^[A-Za-z0-9_]{3,20}$/.test(p)) { $('loginErr').textContent = 'Pseudo : 3 à 20 lettres, chiffres ou _'; return; }
+  if (w.length < 6) { $('loginErr').textContent = 'Mot de passe : 6 caractères minimum'; return; }
+  $('loginErr').textContent = '…';
+  try { await fn(p, w); hideLogin(); $('lPass').value = ''; toast(storageOK ? 'Bienvenue ' + user.name + ' 👋' : 'Bienvenue ' + user.name + ' (connexion non mémorisée dans ce cadre)'); }
+  catch (e) { $('loginErr').textContent = authMsg(e); }
+}
+$('loginForm').addEventListener('submit', (e) => { e.preventDefault(); doAuth(signIn); });
+$('bUp').onclick = () => doAuth(signUp);
+$('bSkip').onclick = hideLogin;
+$('me').onclick = () => { if (user) showAccount(); else showLogin(); };
+$('bOut').onclick = () => { signOut(); hideLogin(); toast('Déconnecté'); };
+$('bClose').onclick = hideLogin;
+async function initAuth() {
+  updateMe();
+  if (!DB_URL) return;
+  try {
+    const s = JSON.parse(ls('tw_session') || 'null');
+    if (s && s.refreshToken) { user = { name: s.name, refreshToken: s.refreshToken, idToken: '', exp: 0 }; await getToken(); }
+  } catch {}
+  updateMe();
+}
+
+// ====== DESSIN ======
+function draw() {
+  if (cv.width !== W * CS) { cv.width = W * CS; cv.height = H * CS; }
+  ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, cv.width, cv.height);
+
+  ctx.font = 'bold 15px ui-monospace, Menlo, Consolas, monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  for (const k in cells) {
+    const c = cells[k]; if (!c || typeof c.c !== 'string') continue;
+    const [x, y] = k.split(',').map(Number);
+    if (!(x >= 0 && x < W && y >= 0 && y < H)) continue;
+    ctx.fillStyle = safeCol(c.col); ctx.fillText(c.c.slice(0, 2), x * CS + CS / 2, y * CS + CS / 2 + 1);
+    if (safeUrl(c.u)) ctx.fillRect(x * CS + 3, y * CS + CS - 4, CS - 6, 2);
+  }
+
+  if (mode === 'write' && cursor) {
+    ctx.fillStyle = '#6c4dff1f'; ctx.fillRect(cursor.x * CS, cursor.y * CS, CS, CS);
+    ctx.strokeStyle = '#6c4dff'; ctx.lineWidth = 2;
+    ctx.strokeRect(cursor.x * CS + 1, cursor.y * CS + 1, CS - 2, CS - 2);
+    if (blink) { ctx.fillStyle = color; ctx.fillRect(cursor.x * CS + 2, cursor.y * CS + 3, 2, CS - 6); }
+  }
+  if (mode === 'bomb' && hover) {
+    const s = (BOMB_R * 2 + 1) * CS;
+    ctx.fillStyle = '#ff54682b'; ctx.fillRect((hover.x - BOMB_R) * CS, (hover.y - BOMB_R) * CS, s, s);
+    ctx.strokeStyle = '#ff5468'; ctx.lineWidth = 2;
+    ctx.strokeRect((hover.x - BOMB_R) * CS + 1, (hover.y - BOMB_R) * CS + 1, s - 2, s - 2);
+  }
+  if (mode === 'read' && hover) {
+    const c = cells[hover.x + ',' + hover.y];
+    if (c) {
+      const label = 'par ' + String(c.by || '?').slice(0, 20) + (safeUrl(c.u) ? ' · ' + safeUrl(c.u) : '');
+      ctx.font = '13px system-ui, sans-serif'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+      const w = ctx.measureText(label).width + 16;
+      const bx = Math.max(0, Math.min(hover.x * CS, W * CS - w)), by = Math.max(0, hover.y * CS - 28);
+      ctx.fillStyle = '#161923ee'; ctx.fillRect(bx, by, w, 24);
+      ctx.fillStyle = '#fff'; ctx.fillText(label, bx + 8, by + 12);
+    }
+  }
+}
+setInterval(() => { if (mode === 'write' && cursor) { blink = !blink; draw(); } }, 500);
+
+// ====== COULEURS & LIEN (barre du bas) ======
+const sw = $('swatches');
+COLORS.forEach((c) => {
+  const b = document.createElement('button'); b.className = 'sw' + (c === color ? ' on' : ''); b.style.background = c; b.dataset.c = c;
+  b.addEventListener('pointerdown', (e) => e.preventDefault());   // garde le clavier ouvert
+  b.onclick = () => pickColor(c);
+  sw.appendChild(b);
+});
+function pickColor(c) {
+  color = c;
+  document.querySelectorAll('.sw').forEach((b) => b.classList.toggle('on', b.dataset.c === c));
+  $('customDot').style.background = COLORS.includes(c) ? '' : c;
+  draw(); refocus();
+}
+$('custom').addEventListener('input', (e) => pickColor(e.target.value));
+$('linkBtn').addEventListener('pointerdown', (e) => e.preventDefault());
+function applyLink() {
+  const v = $('linkIn').value.trim();
+  link = safeUrl(v);
+  if (v && !link) toast('Le lien doit commencer par http:// ou https://');
+  $('linkBtn').classList.toggle('on', !!link);
+  $('linkRow').style.display = 'none';
+  refocus();
+}
+$('linkBtn').onclick = () => {
+  const row = $('linkRow');
+  if (row.style.display === 'flex') return applyLink();
+  row.style.display = 'flex'; $('linkIn').value = link; $('linkIn').focus();
+};
+$('linkOk').onclick = applyLink;
+$('linkIn').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); applyLink(); } });
+
+// ====== MODES ======
+function setMode(m) {
+  mode = m;
+  ['Write', 'Bomb', 'Read'].forEach((k) => $('m' + k).classList.toggle('on', m === k.toLowerCase()));
+  $('dock').style.display = m === 'write' ? 'flex' : 'none';
+  const di = $('dockInfo');
+  di.style.display = m === 'write' ? 'none' : 'block';
+  di.textContent = m === 'bomb' ? '💣 Touche une zone pour la détruire (7×7)' : '🔍 Touche un texte souligné pour ouvrir son lien';
+  if (m !== 'write') kb.blur();
+  cv.style.cursor = m === 'write' ? 'text' : m === 'bomb' ? 'crosshair' : 'pointer';
+  draw();
+}
+$('mWrite').onclick = () => setMode('write');
+$('mBomb').onclick = () => setMode('bomb');
+$('mRead').onclick = () => setMode('read');
+
+// ====== ÉCRITURE AU CLAVIER ======
+function refocus() { if (mode === 'write' && cursor) kb.focus({ preventScroll: true }); }
+function resetKb() { kb.value = SENT; try { kb.setSelectionRange(1, 1); } catch {} }
+
+function typeChar(ch) {
+  if (!cursor) return;
+  if (cursor.x >= W) newline();
+  setCell(cursor.x + ',' + cursor.y, { c: ch, col: color, u: link, by: myName() });
+  cursor.x++;
+  if (cursor.x >= W) newline();
+}
+function newline() { cursor.x = startX; cursor.y = Math.min(H - 1, cursor.y + 1); }
+function backspace() {
+  if (!cursor) return;
+  if (cursor.x > startX) cursor.x--;
+  else if (cursor.y > 0) { cursor.y--; cursor.x = W - 1; while (cursor.x > startX && !cells[cursor.x + ',' + cursor.y]) cursor.x--; if (!cells[cursor.x + ',' + cursor.y]) return; }
+  setCell(cursor.x + ',' + cursor.y, null);
+}
+
+kb.addEventListener('keydown', (e) => {
+  if (!cursor) return;
+  if (e.key === 'Enter') { e.preventDefault(); newline(); }
+  else if (e.key === 'Backspace') { e.preventDefault(); backspace(); }
+  else if (e.key === 'ArrowLeft') { e.preventDefault(); cursor.x = Math.max(0, cursor.x - 1); startX = Math.min(startX, cursor.x); }
+  else if (e.key === 'ArrowRight') { e.preventDefault(); cursor.x = Math.min(W - 1, cursor.x + 1); }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); cursor.y = Math.max(0, cursor.y - 1); }
+  else if (e.key === 'ArrowDown') { e.preventDefault(); cursor.y = Math.min(H - 1, cursor.y + 1); }
+  else return;
+  blink = true; draw(); scrollToCursor();
+});
+kb.addEventListener('input', () => {                 // mobile + collage + accents
+  const v = kb.value;
+  if (!v.includes(SENT)) { backspace(); }            // la sentinelle a disparu = touche effacer
+  else { for (const ch of [...v.replace(/​/g, '')]) { if (ch === '\n') newline(); else if (ch.trim()) typeChar(ch); else if (ch === ' ') { cursor.x = Math.min(W, cursor.x + 1); if (cursor.x >= W) newline(); } } }
+  resetKb(); blink = true; draw(); scrollToCursor();
+});
+kb.addEventListener('focus', resetKb);
+
+// ====== CLICS SUR LE CANEVAS ======
+function pos(e) {
+  const r = cv.getBoundingClientRect();
+  return { x: Math.floor((e.clientX - r.left) / CS), y: Math.floor((e.clientY - r.top) / CS) };
+}
+cv.addEventListener('mousemove', (e) => { hover = pos(e); if (mode !== 'write') draw(); });
+cv.addEventListener('mouseleave', () => { hover = null; if (mode !== 'write') draw(); });
+
+function scrollToCursor() {
+  if (!cursor) return;
+  const wrap = $('wrap'), r = cv.getBoundingClientRect(), w = wrap.getBoundingClientRect();
+  const cy = r.top + cursor.y * CS, cx = r.left + cursor.x * CS;
+  if (cy < w.top + 20 || cy > w.bottom - 50) wrap.scrollTop += cy - (w.top + w.height / 2);
+  if (cx < w.left + 10 || cx > w.right - 50) wrap.scrollLeft += cx - (w.left + w.width / 3);
+}
+// quand le clavier s'ouvre/ferme (iOS surtout), on ajuste la hauteur et on garde le curseur visible
+if (window.visualViewport) {
+  const f = () => { document.body.style.height = window.visualViewport.height + 'px'; setTimeout(scrollToCursor, 50); };
+  window.visualViewport.addEventListener('resize', f);
+}
+
+cv.addEventListener('click', async (e) => {
+  const p = pos(e); hover = p;
+  if (p.x < 0 || p.y < 0 || p.x >= W || p.y >= H) return;
+  try {
+    if (DB_URL && !user && mode !== 'read') { showLogin(); return; }
+    if (mode === 'write') {
+      cursor = p; startX = p.x; blink = true; draw();
+      kb.focus({ preventScroll: true });          // ouvre le clavier directement
+      setTimeout(scrollToCursor, 300);
+    } else if (mode === 'bomb') {
+      const patch = {};
+      for (let dx = -BOMB_R; dx <= BOMB_R; dx++) for (let dy = -BOMB_R; dy <= BOMB_R; dy++) {
+        const k = (p.x + dx) + ',' + (p.y + dy);
+        if (cells[k]) { patch[k] = null; delete cells[k]; }
+      }
+      const n = Object.keys(patch).length;
+      if (n) await patchCells(patch);
+      toast('💥 ' + n + ' lettre(s) détruite(s)');
+      draw(); refresh();
+    } else {
+      const c = cells[p.x + ',' + p.y], u = c && safeUrl(c.u);
+      if (u) { const w = window.open(u, '_blank'); if (w) { try { w.opener = null; } catch {} } else toast('Lien bloqué : ' + u); }
+    }
+  } catch { toast('Erreur de connexion'); }
+});
+
+async function refresh() {
+  try {
+    const fresh = await loadCells();
+    const overlay = { ...inflight, ...pending };     // ce que je suis en train d'écrire reste affiché
+    for (const k in overlay) { if (overlay[k] === null) delete fresh[k]; else fresh[k] = overlay[k]; }
+    cells = fresh; draw();
+  } catch {}
+}
+setMode('write');
+initAuth();
+refresh();
+setInterval(() => { if (!document.hidden) refresh(); }, DB_URL ? 4000 : 2500);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
+</script>
+</body>
+</html>
