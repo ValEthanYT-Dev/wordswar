@@ -6,7 +6,7 @@
 <meta name="color-scheme" content="dark">
 <meta name="theme-color" content="#161923">
 <title>Wordswar</title>
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%238f76ff'/%3E%3Cstop offset='1' stop-color='%236c4dff'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='url(%23g)'/%3E%3Cpath d='M16 18h32v9H36v21h-9V27H16z' fill='white'/%3E%3C/svg%3E">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%238f76ff'/%3E%3Cstop offset='1' stop-color='%236c4dff'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='%23161923'/%3E%3Cpath d='M32 8L50 16v14c0 11.6-8.1 22.5-18 26-9.9-3.5-18-14.4-18-26V16l18-8zm0 8.6l-12.5 5.5v10.4c0 8.2 5.4 16.3 12.5 19.1 7.2-2.8 12.5-10.9 12.5-19.1V22.1L32 16.6zm-3 9.6h6v8h8v6h-8v8h-6v-8h-8v-6h8v-8z' fill='url(%23g)'/%3E%3C/svg%3E">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
   :root { --bg:#0d0f15; --card:#161923; --line:#262a39; --txt:#e9eaf2; --mute:#8a8fa5; --acc:#8f76ff; --acc2:#6c4dff; --danger:#ff5468; }
@@ -16,10 +16,10 @@
 
   #local { display:none; font-size:12px; background:#3a2d0a; color:#ffd98a; padding:5px 12px; text-align:center; }
 
-  .top { background:var(--card); border-bottom:1px solid var(--line); padding:8px 12px; display:flex; flex-wrap:nowrap; gap:8px; align-items:center; min-height:52px; overflow-x:auto; overflow-y:hidden; scrollbar-width:thin; }
+  .top { background:var(--card); border-bottom:1px solid var(--line); padding:8px 12px; display:flex; flex-wrap:nowrap; gap:8px; align-items:center; min-height:52px; overflow-x:auto; overflow-y:hidden; }
   h1 { margin:0; display:flex; align-items:center; min-width:0; flex:0 0 auto; line-height:1; align-self:center; }
   /* Logo ASCII en gras ; Connexion et tous les outils partagent la même ligne. */
-  #asciiHeaderLogo { display:block; margin:0; padding:0; font:900 clamp(4px, .4vw, 6px)/1 ui-monospace,SFMono-Regular,Consolas,monospace; white-space:pre; text-align:left; color:transparent; background-image:linear-gradient(100deg,#6c4dff 0%,#8f76ff 35%,#d2a8ff 68%,#ffb8e8 100%); background-size:100% 100%; -webkit-background-clip:text; background-clip:text; -webkit-text-stroke:.10px #a58aff; paint-order:stroke fill; }
+  #asciiHeaderLogo { display:block; margin:0; padding:0; font:900 clamp(4px, .4vw, 6px)/1 ui-monospace,SFMono-Regular,Consolas,monospace; white-space:pre; text-align:left; color:transparent; background:linear-gradient(90deg,#d9d6ff,#fff,#d9d6ff); -webkit-background-clip:text; background-clip:text; }
   .top > #me, .top > h1, .top > #adminBtn, .top > #superBadge { flex:0 0 auto; }
   .top > .seg { margin-left:auto; flex:0 0 auto; align-self:center; flex-wrap:nowrap; }
   .top > .seg button { white-space:nowrap; }
@@ -38,8 +38,7 @@
   #linkRow button { font:inherit; font-weight:600; border:0; border-radius:10px; padding:0 16px; cursor:pointer; color:#fff; background:var(--acc2); }
   .meBtn { font:inherit; font-size:14px; color:var(--txt); background:#0d0f15; border:1px solid var(--line); border-radius:10px; padding:8px 12px; cursor:pointer; }
   #adminBtn { border-color:var(--acc); }
-  #adminBtn.super-admin-button { border-color:#ff65c5; color:#fff; background:linear-gradient(100deg,#ff4d4d,#ffb84d,#fff34d,#54e879,#43c5ff,#a56bff,#ff65c5); background-size:220% 100%; animation:superRainbow 3s linear infinite; text-shadow:0 1px 3px #000a; font-weight:800; }
-  @keyframes superRainbow { to { background-position:220% 0; } }
+  #adminBtn.super-admin-button { border-color:#8f76ff; color:#fff; background:linear-gradient(135deg,#211a34,#352d56); }
   #superBadge { display:none; border:1px solid #e8c84a; border-radius:999px; padding:7px 10px; font-size:12px; font-weight:800; cursor:pointer; background:#0d0f15; }
   #superBadge.on { display:inline-flex; background-image:linear-gradient(90deg,#ff4d4d,#ffb84d,#fff34d,#54e879,#43c5ff,#a56bff,#ff65c5); color:transparent; -webkit-background-clip:text; background-clip:text; }
   .online-count { flex:0 0 auto; white-space:nowrap; font-size:12px; color:#35e879; border:1px solid #35e87955; border-radius:999px; padding:6px 9px; }
@@ -53,7 +52,7 @@
 
   /* connexion */
   #login { position:fixed; inset:0; background:#0d0f15f2; display:none; align-items:center; justify-content:center; z-index:20; padding:16px; }
-  #login .card { background:var(--card); border:1px solid var(--line); border-radius:18px; padding:22px; width:100%; max-width:340px; display:flex; flex-direction:column; gap:10px; box-shadow:0 20px 60px #000a; }
+  #login .card { background:var(--card); border:1px solid var(--line); border-radius:18px; padding:22px; width:100%; max-width:340px; display:flex; flex-direction:column; gap:10px; box-shadow:0 20px 60px rgba(0,0,0,.35); }
   #login h2 { margin:0 0 4px; font-size:20px; }
   #login p { margin:0 0 6px; color:var(--mute); font-size:13px; }
   #login input { font:inherit; color:var(--txt); background:#0d0f15; border:1px solid var(--line); border-radius:10px; padding:11px 12px; outline:none; }
@@ -85,7 +84,7 @@
   #swatches::-webkit-scrollbar { display:none; }
   .sw { flex:none; width:32px; height:32px; border-radius:50%; border:2px solid #0d0f15; box-shadow:0 0 0 1px var(--line); cursor:pointer; padding:0; }
   .sw.on { box-shadow:0 0 0 2px var(--acc); transform:scale(1.1); }
-  .tool { flex:none; width:40px; height:40px; border-radius:12px; border:1px solid var(--line); background:#0d0f15; color:var(--txt); font-size:18px; cursor:pointer; position:relative; padding:0; display:flex; align-items:center; justify-content:center; }
+  .tool { flex:none; width:40px; height:40px; border-radius:12px; border:1px solid var(--line); background:#0d0f15; color:var(--txt); font-size:18px; cursor:pointer; position:relative; padding:0; display:grid; place-items:center; }
   .tool.on { border-color:var(--acc); background:#8f76ff22; }
   #customDot { width:22px; height:22px; border-radius:50%; background:conic-gradient(red,yellow,lime,cyan,blue,magenta,red); }
 
@@ -107,11 +106,11 @@
   #cpRecent { display:flex; flex-wrap:wrap; gap:7px; min-height:0; }
   #cpRecent .sw { width:24px; height:24px; }
 
-  #msg { position:fixed; left:50%; bottom:90px; transform:translate(-50%,10px); background:#000d; color:#fff; border:1px solid var(--line); padding:9px 16px; border-radius:22px; opacity:0; transition:.25s; pointer-events:none; font-size:14px; z-index:30; }
+  #msg { position:fixed; left:50%; bottom:90px; transform:translate(-50%,10px); background:#000d; color:#fff; border:1px solid var(--line); padding:9px 16px; border-radius:22px; opacity:0; transition:.2s ease; pointer-events:none; }
   #msg.show { opacity:1; transform:translate(-50%,0); }
 
   /* panel admin */
-  #admin { position:fixed; top:0; right:0; bottom:0; width:min(330px,100%); background:var(--card); border-left:1px solid var(--line); z-index:15; padding:14px; display:flex; flex-direction:column; gap:16px; overflow:auto; transform:translateX(100%); visibility:hidden; transition:transform .2s, visibility 0s .2s; box-shadow:-10px 0 40px #0009; }
+  #admin { position:fixed; top:0; right:0; bottom:0; width:min(330px,100%); background:var(--card); border-left:1px solid var(--line); z-index:15; padding:14px; display:flex; flex-direction:column; gap:12px; transform:translateX(100%); visibility:hidden; transition:transform .2s; }
   #admin.open { transform:none; visibility:visible; transition:transform .2s; }
   /* Positions choisissables du panneau admin */
   #admin[data-position="left"] { left:0; right:auto; border-left:0; border-right:1px solid var(--line); transform:translateX(-100%); }
@@ -240,14 +239,14 @@
 
 <!-- panel admin -->
 <aside id="admin" aria-label="Panel admin">
-  <header><b>🛡️ Panel admin</b><button class="ab" id="adClose" title="Fermer">✕</button></header>
+  <header><b id="adminTitle">🛡️ Panel admin</b><button class="ab" id="adClose" title="Fermer">✕</button></header>
 
   <section id="superAdminSection" class="super-only">
     <h3>★ Mode Super Admin</h3>
     <button class="ab full" id="superModeToggle" type="button" style="margin-top:0">Activer le mode Super Admin</button>
     <small>Accès réservé aux UID présents dans /superAdmins.</small>
-    <div class="row" style="margin-top:8px"><input id="superTargetPseudo" type="text" placeholder="Pseudo du joueur à promouvoir" autocomplete="off"><button class="ab" id="superGrantAdmin" type="button">Promouvoir admin</button></div>
-    <div class="row" style="margin-top:8px"><input id="superRevokePseudo" type="text" placeholder="Pseudo admin à rétrograder" autocomplete="off"><button class="ab danger" id="superRevokeAdmin" type="button">Retirer</button></div>
+    <div class="row" style="margin-top:8px"><input id="superTargetPseudo" type="text" placeholder="Pseudo du joueur à promouvoir" autocomplete="off"><button class="ab" id="superGrantAdmin" type="button">OK</button></div>
+    <div class="row" style="margin-top:8px"><input id="superRevokePseudo" type="text" placeholder="Pseudo admin à rétrograder" autocomplete="off"><button class="ab danger" id="superRevokeAdmin" type="button">Rétro.</button></div>
     <button class="ab full" id="superRefreshAdmins" type="button">Actualiser la liste des administrateurs</button>
     <div id="superAdminList" class="admin-list">Connecte-toi en Super Admin pour afficher la liste.</div>
     <small>Les joueurs doivent s’être connectés au moins une fois avec cette version pour que leur pseudo soit associé à leur UID Firebase.</small>
@@ -310,7 +309,7 @@
     <button class="b alt" type="button" id="bUp">Créer un compte</button>
     <div class="sep">ou</div>
     <button class="b google" type="button" id="bGoogle">
-      <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+      <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.33C12.55 15.24 17.65 9.5 24 9.5zm14.72 17.04c0-1.17-.1-2.3-.3-3.4H24c-1.11 0-2.17.2-3.16.53l6.53 5.06c1.49-.64 2.89-1.54 4.08-2.7l7.27 6.16c.22-.7.38-1.45.52-2.22zM24 47.5c5.99 0 11.02-1.98 14.68-5.38l-7.1-6.03c-1.88 1.31-4.31 2.06-7.58 2.06-5.84 0-10.78-3.94-12.54-9.22l-7.23 5.6c3.7 7.28 11.38 12.97 19.77 12.97z"/><path fill="#34A853" d="M10.87 31.4c-.48-1.45-.74-2.99-.74-4.6s.26-3.15.74-4.6l-7.23-5.6C2.35 18.49 2 20.56 2 22.8c0 2.27.35 4.37 1.03 6.32l7.84-5.72z"/><path fill="#FBBC05" d="M24 10.75c3.21 0 6.08 1.1 8.35 3.27l6.22-6.22C35.06 3.84 29.97 1 24 1 15.3 1 7.41 5.95 2.9 13.25l7.68 5.96c1.7-5.28 6.64-9.46 13.42-9.46z"/><path fill="#4285F4" d="M24 47.5c-6.07 0-11.24-2.26-15.14-5.96l7.38-6.24c1.67 1.17 3.72 1.84 7.76 1.84 4.16 0 7.6-1.52 9.6-3.96l7.12 6.1C35.45 44.21 30.14 47.5 24 47.5z"/></svg>
       Continuer avec Google
     </button>
     <button class="b ghost" type="button" id="bAdmin">🛡️ Connexion admin</button>
@@ -326,27 +325,21 @@
 
 <script>
 // ====== CONFIG ======
-// URL de ta Realtime Database Firebase (sans slash final).
 const DB_URL = 'https://words-war-fc84c-default-rtdb.europe-west1.firebasedatabase.app';
-// Clé API Web du projet Firebase (pas secrète). Sert à la connexion pseudo + mot de passe.
 const API_KEY = 'AIzaSyA-Xm_dU5-IGiKhqFOmLJt5dMSuwkq9WPg';
-// ID client OAuth « Web » pour la connexion Google.
 const GOOGLE_CLIENT_ID = '509773191790-n1ts912gv7ucd9kdl2s3nvrn7cc3vvhl.apps.googleusercontent.com';
 
-// Grille infinie : une case = CW × CHT pixels à 100 % de zoom (espacement serré, comme du vrai texte)
 const CW = 10, CHT = 18, FONT = 16;
-// Un chunk = 50 × 30 cases, chargé à la demande
 const CHUNK_W = 50, CHUNK_H = 30;
 const MIN_Z = 0.35, MAX_Z = 4;
 const BOMB_R = 3;
 const COLORS = ['#111111', '#e63946', '#ff8c1a', '#f4c20d', '#2eb872', '#14b8c4', '#2f6df6', '#7c3aed', '#e83e9c', '#8a8fa5'];
 
-// ====== OUTILS ======
 const $ = (id) => document.getElementById(id);
 const cv = $('cv'), ctx = cv.getContext('2d'), kb = $('kb'), wrap = $('wrap');
 let mode = 'write', cursor = null, startX = 0, hover = null, blink = true;
 let color = COLORS[0], link = '';
-const SENT = '\u200b';       // caractère « sentinelle » pour détecter la touche effacer sur mobile
+const SENT = '\u200b';
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 const cdiv = (v, n) => Math.floor(v / n);
 
@@ -360,7 +353,6 @@ function toast(t) { const m = $('msg'); m.textContent = t; m.classList.add('show
 function safeUrl(u) { u = String(u || '').trim().slice(0, 300); return /^https?:\/\//i.test(u) ? u : ''; }
 function safeCol(c) { return /^#[0-9a-f]{6}$/i.test(c) ? c : '#111111'; }
 
-// ====== CAMÉRA (canevas infini) ======
 let vw = 800, vh = 600, zoom = 1, camX = 0, camY = 0;
 function centerOn(cellX, cellY) { camX = cellX * CW + CW / 2 - vw / zoom / 2; camY = cellY * CHT + CHT / 2 - vh / zoom / 2; }
 function zoomAt(sx, sy, nz) {
@@ -375,17 +367,14 @@ function pos(e) {
 }
 function saveView() { ls('tw_view', JSON.stringify({ x: (camX + vw / zoom / 2) / CW, y: (camY + vh / zoom / 2) / CHT, z: zoom })); }
 
-// ====== CHUNKS ======
-const chunks = {};            // "cx,cy" -> { cells:{ "lx,ly": {c,col,u,by} }, loaded, loading, last, failAt }
+const chunks = {};
 let pending = {}, inflight = {}, flushTimer = null, activeLoads = 0;
-
 function split(x, y) {
   const cx = cdiv(x, CHUNK_W), cy = cdiv(y, CHUNK_H);
   return { ck: cx + ',' + cy, lk: (x - cx * CHUNK_W) + ',' + (y - cy * CHUNK_H) };
 }
 function ensureChunk(ck) { return chunks[ck] || (chunks[ck] = { cells: {}, loaded: false, loading: null, last: 0, failAt: 0 }); }
 function getCell(x, y) { const s = split(x, y), ch = chunks[s.ck]; return (ch && ch.cells[s.lk]) || null; }
-
 async function fetchChunk(ck) {
   if (!DB_URL) { try { const all = JSON.parse(ls('tw_chunks') || '{}'); return all[ck] || {}; } catch { return {}; } }
   const r = await fetch(DB_URL + '/chunks/' + encodeURIComponent(ck) + '.json');
@@ -399,7 +388,7 @@ function loadChunk(ck) {
   ch.loading = (async () => {
     try {
       const data = await fetchChunk(ck);
-      const overlay = { ...inflight, ...pending };               // ce que je suis en train d'écrire reste affiché
+      const overlay = { ...inflight, ...pending };
       for (const p in overlay) {
         if (!p.startsWith(ck + '/')) continue;
         const lk = p.slice(ck.length + 1);
@@ -410,15 +399,6 @@ function loadChunk(ck) {
     finally { ch.loading = null; activeLoads--; requestDraw(); scheduleSync(); }
   })();
   return ch.loading;
-}
-async function loadRect(x0, y0, x1, y1) {
-  const ps = [];
-  for (let cy = cdiv(y0, CHUNK_H); cy <= cdiv(y1, CHUNK_H); cy++)
-    for (let cx = cdiv(x0, CHUNK_W); cx <= cdiv(x1, CHUNK_W); cx++) {
-      const ck = cx + ',' + cy, ch = chunks[ck];
-      if (!ch || !ch.loaded) ps.push(loadChunk(ck));
-    }
-  await Promise.all(ps);
 }
 function visibleChunkList(margin) {
   const x0 = Math.floor(camX / CW), x1 = Math.ceil((camX + vw / zoom) / CW);
@@ -441,11 +421,6 @@ function syncChunks() {
 }
 let syncT = null;
 function scheduleSync() { clearTimeout(syncT); syncT = setTimeout(syncChunks, 90); }
-function refreshVisible() {
-  const now = Date.now();
-  visibleChunkList(0).filter((ck) => { const ch = chunks[ck]; return ch && ch.loaded && !ch.loading && now - ch.last > 2800; })
-    .sort((a, b) => chunks[a].last - chunks[b].last).slice(0, 8).forEach((ck) => loadChunk(ck));
-}
 function evictChunks() {
   const keys = Object.keys(chunks);
   if (keys.length <= 150) return;
@@ -454,8 +429,6 @@ function evictChunks() {
   for (const ck of keys) { if (Object.keys(chunks).length <= 110) break; if (!keep.has(ck) && !chunks[ck].loading) delete chunks[ck]; }
 }
 
-// ====== STOCKAGE (Firebase REST, ou localStorage en secours) ======
-// obj : { "cx,cy/lx,ly": {…} | null }   (ou "cx,cy": null pour vider un chunk entier)
 async function patchCells(obj) {
   if (!DB_URL) {
     const all = JSON.parse(ls('tw_chunks') || '{}');
@@ -471,8 +444,6 @@ async function patchCells(obj) {
   }
   const t = await getToken();
   if (!t) { showLogin(); throw new Error('Non connecté'); }
-  // Écrire chunk par chunk : les règles Firebase peuvent alors distinguer
-  // l'écriture d'une cellule (joueur connecté) de l'effacement d'un chunk entier (admin).
   const byChunk = {};
   for (const path in obj) {
     const slash = path.indexOf('/');
@@ -509,14 +480,12 @@ async function flush() {
   for (const k in sent) if (inflight[k] === sent[k]) delete inflight[k];
 }
 
-// ====== COMPTE (pseudo + mot de passe, via Firebase Auth) ======
-let user = null;       // { name, uid, refreshToken, idToken, exp }
+let user = null;
 let isAdmin = false, isSuperAdmin = false, superMode = false, adminMode = false, locked = false;
-const adminUIDs = new Set(), superAdminUIDs = new Set();   // ← manquaient : ReferenceError avalée par le catch
-let roleDiag = '';                                          // dernier diagnostic de lecture des rôles
+const adminUIDs = new Set(), superAdminUIDs = new Set();
+let roleDiag = '';
 const AUTH_URL = 'https://identitytoolkit.googleapis.com/v1/accounts:';
 const pseudoEmail = (p) => p.toLowerCase() + '@textwar.example';
-const myName = () => (user ? user.name : 'Anonyme').slice(0, 20);
 
 async function authCall(method, body) {
   const r = await fetch(AUTH_URL + method + '?key=' + API_KEY, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
@@ -526,10 +495,7 @@ async function authCall(method, body) {
 }
 function authMsg(e) {
   const m = String(e.message || e);
-  if (m.includes('NOT_ADMIN')) {
-    const connectedUid = user && user.uid ? user.uid : '(UID indisponible)';
-    return 'Ce compte n’est pas reconnu comme admin. UID Firebase actuellement connecté : ' + connectedUid + '. Dans Realtime Database, ajoute exactement /superAdmins/' + connectedUid + ' = true (ou /admins/' + connectedUid + ' = true), puis vérifie les règles de lecture. Lecture effectuée : ' + (roleDiag || 'aucune') + '.';
-  }
+  if (m.includes('NOT_ADMIN')) return 'Ce compte n’est pas reconnu comme admin.';
   if (m.includes('EMAIL_EXISTS')) return 'Ce pseudo est déjà pris.';
   if (m.includes('WEAK_PASSWORD')) return 'Mot de passe trop court (6 caractères minimum).';
   if (m.includes('INVALID_LOGIN') || m.includes('EMAIL_NOT_FOUND') || m.includes('INVALID_PASSWORD')) return 'Pseudo ou mot de passe incorrect.';
@@ -550,7 +516,7 @@ async function signIn(pseudo, pass) {
 async function signUp(pseudo, pass) {
   const j = await authCall('signUp', { email: pseudoEmail(pseudo), password: pass, returnSecureToken: true });
   await authCall('update', { idToken: j.idToken, displayName: pseudo, returnSecureToken: false });
-  await signIn(pseudo, pass);     // nouveau jeton qui contient le pseudo
+  await signIn(pseudo, pass);
 }
 
 let presenceTimer = null;
@@ -594,8 +560,6 @@ function googleName(j) {
 }
 function signInGoogle() {
   const err = (t) => { $('loginErr').textContent = t; };
-  // En mode admin, la connexion Google est autorisée : checkAdmin() vérifiera
-  // ensuite l'UID dans /admins/<uid> avant d'ouvrir le panneau.
   if (!DB_URL || !API_KEY) return err('Firebase n\'est pas configuré : remplis DB_URL et API_KEY dans index.html.');
   if (!GOOGLE_CLIENT_ID) return err('Renseigne GOOGLE_CLIENT_ID dans index.html.');
   if (!(window.google && google.accounts && google.accounts.oauth2)) return err('Google n\'est pas chargé (connexion ou bloqueur de pub ?).');
@@ -636,21 +600,24 @@ function signOut() {
   if (old && old.uid && DB_URL) getToken().then(t => t && fetch(DB_URL + '/presence/' + encodeURIComponent(old.uid) + '.json?auth=' + encodeURIComponent(t), {method:'DELETE'})).catch(()=>{});
   user = null; isAdmin = false; isSuperAdmin = false; superMode = false; ls('tw_session', ''); closeAdmin(); updateMe();
 }
+function updateAdminTitle() {
+  const title = $('adminTitle');
+  if (title) title.textContent = isSuperAdmin ? '🛡️ Panel Super Admin' : '🛡️ Panel admin';
+}
 function updateMe() {
   $('me').textContent = user ? '👤 ' + user.name : '🔑 Connexion';
   $('adminBtn').hidden = !isAdmin;
-  $('adminBtn').textContent = isSuperAdmin ? '🌈 Super Admin' : '🛡️ Admin';
+  $('adminBtn').textContent = isSuperAdmin ? '🛡️ Super Admin' : '🛡️ Admin';
   $('adminBtn').classList.toggle('super-admin-button', isSuperAdmin);
-  $('superBadge').hidden = !isSuperAdmin; $('superBadge').classList.toggle('on', isSuperAdmin);
+  $('superBadge').hidden = true;
+  $('superBadge').classList.toggle('on', false);
   $('admin').classList.toggle('super-mode', isSuperAdmin && superMode);
-  // Ne jamais afficher les commandes Super Admin à un admin classique.
   const superSection = $('superAdminSection');
   if (superSection) superSection.hidden = !(isSuperAdmin && superMode);
   const sm = $('superModeToggle'); if (sm) sm.textContent = superMode ? 'Désactiver le mode Super Admin' : 'Activer le mode Super Admin';
-  // La Méga-bombe n'est même pas affichée aux comptes non administrateurs.
   $('mMegaBomb').hidden = !isAdmin;
+  updateAdminTitle();
 }
-// Les rôles sont liés à l'UID Firebase : /admins/<uid> et /superAdmins/<uid>.
 async function checkAdmin() {
   isAdmin = false; isSuperAdmin = false;
   if (DB_URL && user && user.uid) {
@@ -664,7 +631,6 @@ async function checkAdmin() {
           fetch(DB_URL + '/superAdmins.json' + auth),
           fetch(DB_URL + '/admins.json' + auth)
         ]);
-        // Distinguer un rôle absent d'une lecture refusée par les règles Firebase.
         const superValue = sr.ok ? await sr.json() : null;
         const adminValue = ar.ok ? await ar.json() : null;
         isSuperAdmin = superValue === true;
@@ -676,19 +642,17 @@ async function checkAdmin() {
         else if (adminValue !== true) console.info('Wordswar : /admins/' + user.uid + ' vaut ' + JSON.stringify(adminValue) + ', donc cet UID n’est pas Admin.');
         adminUIDs.clear(); superAdminUIDs.clear();
         try {
-        if (allSr.ok) { const all = await allSr.json(); if (all && typeof all === 'object') Object.keys(all).forEach(uid => { if (all[uid] === true) superAdminUIDs.add(uid); }); }
-        if (allAr.ok) { const all = await allAr.json(); if (all && typeof all === 'object') Object.keys(all).forEach(uid => { if (all[uid] === true) adminUIDs.add(uid); }); }
-        superAdminUIDs.forEach(uid => adminUIDs.add(uid));
+          if (allSr.ok) { const all = await allSr.json(); if (all && typeof all === 'object') Object.keys(all).forEach(uid => { if (all[uid] === true) superAdminUIDs.add(uid); }); }
+          if (allAr.ok) { const all = await allAr.json(); if (all && typeof all === 'object') Object.keys(all).forEach(uid => { if (all[uid] === true) adminUIDs.add(uid); }); }
+          superAdminUIDs.forEach(uid => adminUIDs.add(uid));
         } catch (e) { console.warn('Wordswar : liste des rôles illisible', e); }
       }
     } catch (e) { roleDiag = 'erreur : ' + (e && e.message || e); console.error('Wordswar checkAdmin', e); }
   }
-  // Un Super Admin possède automatiquement les droits admin et son mode de gestion est activé.
   if (isSuperAdmin) { isAdmin = true; superMode = true; }
   else superMode = false;
   updateMe(); return isAdmin;
 }
-
 async function afterLogin() {
   await checkAdmin();
   if (adminMode) {
@@ -743,14 +707,12 @@ async function initAuth() {
   updateMe();
 }
 
-// ====== VERROUILLAGE DU MUR ======
 async function pollSettings() {
   if (!DB_URL) return;
   try { const r = await fetch(DB_URL + '/settings.json'); if (r.ok) { const j = await r.json(); locked = !!(j && j.locked); } } catch {}
   $('lockPill').style.display = locked ? '' : 'none'; $('adLock').checked = locked;
 }
 
-// ====== DESSIN ======
 let raf = 0;
 function requestDraw() { if (!raf) raf = requestAnimationFrame(() => { raf = 0; draw(); }); }
 function curBombR() { return isAdmin ? bombR : BOMB_R; }
@@ -834,7 +796,6 @@ function resize() {
 }
 new ResizeObserver(resize).observe(wrap);
 
-// ====== NAVIGATION : glisser, pincer, Ctrl + molette ======
 const ptrs = new Map(); let gesture = null, pinch = null;
 cv.addEventListener('pointerdown', (e) => {
   try { cv.setPointerCapture(e.pointerId); } catch {}
@@ -871,7 +832,7 @@ cv.addEventListener('pointercancel', (e) => endPtr(e, true));
 cv.addEventListener('pointerleave', () => { if (!ptrs.size) { hover = null; if (mode !== 'write') requestDraw(); } });
 
 document.addEventListener('wheel', (e) => {
-  if (e.ctrlKey || e.metaKey) e.preventDefault();                  // pas de zoom du navigateur
+  if (e.ctrlKey || e.metaKey) e.preventDefault();
   if (!wrap.contains(e.target)) return;
   const dy = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY, dx = e.deltaMode === 1 ? e.deltaX * 16 : e.deltaX;
   if (e.ctrlKey || e.metaKey) {
@@ -892,24 +853,20 @@ $('zHome').onclick = () => { centerOn(50, 30); requestDraw(); scheduleSync(); };
 function ensureCursorVisible() {
   if (!cursor) return;
   const sx = (cursor.x * CW - camX) * zoom, sy = (cursor.y * CHT - camY) * zoom;
-  // Ne déplace la caméra que si la cellule du curseur sort réellement du canevas.
-  // L'ancien seuil de 30 px faisait sauter la vue quand on écrivait près du bord gauche.
   if (sx < 0) camX = cursor.x * CW;
   else if (sx + CW * zoom > vw) camX = cursor.x * CW + CW - vw / zoom;
   if (sy < 0) camY = cursor.y * CHT;
   else if (sy + CHT * zoom > vh) camY = cursor.y * CHT + CHT - vh / zoom;
   requestDraw(); scheduleSync();
 }
-// quand le clavier s'ouvre/ferme (iOS surtout), on ajuste la hauteur et on garde le curseur visible
 if (window.visualViewport) {
   window.visualViewport.addEventListener('resize', () => { document.body.style.height = window.visualViewport.height + 'px'; setTimeout(ensureCursorVisible, 50); });
 }
 
-// ====== COULEURS : swatches + menu sur mesure ======
 const sw = $('swatches');
 COLORS.forEach((c) => {
   const b = document.createElement('button'); b.className = 'sw' + (c === color ? ' on' : ''); b.style.background = c; b.dataset.c = c;
-  b.addEventListener('pointerdown', (e) => e.preventDefault());   // garde le clavier ouvert
+  b.addEventListener('pointerdown', (e) => e.preventDefault());
   b.onclick = () => pickColor(c);
   sw.appendChild(b);
 });
@@ -980,7 +937,6 @@ $('cpHex').addEventListener('input', (e) => {
 });
 $('cpHex').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); closeCP(); } });
 
-// ====== LIEN ======
 function applyLink() {
   const v = $('linkIn').value.trim();
   link = safeUrl(v);
@@ -998,341 +954,9 @@ $('linkBtn').onclick = () => {
 $('linkOk').onclick = applyLink;
 $('linkIn').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); applyLink(); } });
 
-// ====== MODES ======
-function bombInfo() { const n = curBombR() * 2 + 1; return '💣 Touche une zone pour la détruire (' + n + '×' + n + ')'; }
-function setMode(m) {
-  mode = m;
-  ['Write', 'Bomb', 'Read'].forEach((k) => $('m' + k).classList.toggle('on', m === k.toLowerCase()));
-  $('dock').style.display = m === 'write' ? 'flex' : 'none';
-  const di = $('dockInfo');
-  di.style.display = m === 'write' ? 'none' : 'block';
-  di.textContent = m === 'bomb' ? bombInfo() : '🔍 Touche un texte souligné pour ouvrir son lien';
-  if (m !== 'write') { kb.blur(); closeCP(); }
-  cv.style.cursor = m === 'write' ? 'text' : m === 'bomb' ? 'crosshair' : 'pointer';
-  requestDraw();
-}
-$('mWrite').onclick = () => setMode('write');
-$('mBomb').onclick = () => setMode('bomb');
-$('mRead').onclick = () => setMode('read');
-// Le logo ASCII est un élément fixe du HTML, hors des données du mur : les suppressions de lettres ne peuvent pas l'effacer.
-$('mMegaBomb').onclick = async () => {
-  // Garde-fou : seul un compte dont l'UID est autorisé dans /admins peut lancer l'action.
-  if (!user || !isAdmin) { toast('🛡️ Méga-bombe réservée aux administrateurs'); return; }
-  if (!window.confirm('☢️ MÉGA-BOMBE : effacer TOUTES les lettres de Wordswar pour tout le monde ? Cette action est irréversible.')) return;
-  try {
-    clearTimeout(flushTimer); pending = {}; inflight = {};
-    if (!DB_URL) { ls('tw_chunks', '{}'); }
-    else {
-      const t = await getToken();
-      const r = await fetch(DB_URL + '/chunks.json?auth=' + encodeURIComponent(t), { method: 'DELETE' });
-      if (!r.ok) throw new Error('refus');
-    }
-    for (const ck in chunks) delete chunks[ck];
-    toast('☢️ BOUM ! Tout le mur a été vidé.');
-    requestDraw(); scheduleSync();
-  } catch { toast('Échec de la méga-bombe : vérifie la connexion et les règles Firebase'); }
-};
-
-// ====== ÉCRITURE AU CLAVIER ======
-function refocus() { if (mode === 'write' && cursor) kb.focus({ preventScroll: true }); }
-function resetKb() { kb.value = SENT; try { kb.setSelectionRange(1, 1); } catch {} }
-
-let textFormat = { b: false, i: false, uLine: false };
-function typeChar(ch, fmt = textFormat, pastedColor = null) {
-  if (!cursor) return;
-  if (!canWrite()) { toast('🔒 Le mur est verrouillé'); return; }
-  setCell(cursor.x, cursor.y, { c: ch, col: pastedColor || color, u: link, b: !!fmt.b, i: !!fmt.i, uLine: !!fmt.uLine, by: myName(), adm: !!isAdmin, sup: !!isSuperAdmin, byUid: user ? user.uid : '' });
-  cursor.x++;
-}
-function updateFormatButtons() { [['fmtBold','b'],['fmtItalic','i'],['fmtUnderline','uLine']].forEach(([id,key]) => $(id).classList.toggle('active', !!textFormat[key])); }
-[['fmtBold','b'],['fmtItalic','i'],['fmtUnderline','uLine']].forEach(([id,key]) => $(id).addEventListener('click', () => { textFormat[key] = !textFormat[key]; updateFormatButtons(); refocus(); }));
-updateFormatButtons();
-function newline() { cursor.x = startX; cursor.y++; }
-function backspace() {
-  if (!cursor || !canWrite()) return;
-  if (cursor.x > startX) cursor.x--;
-  else {
-    cursor.y--;
-    let x = startX + 200; while (x >= startX && !getCell(x, cursor.y)) x--;
-    if (x < startX) { cursor.x = startX; return; }
-    cursor.x = x;
-  }
-  setCell(cursor.x, cursor.y, null);
-}
-kb.addEventListener('keydown', (e) => {
-  if (e.ctrlKey || e.metaKey) { const map = { b:'b', i:'i', u:'uLine' }; const key=e.key.toLowerCase(); if (map[key]) { e.preventDefault(); textFormat[map[key]]=!textFormat[map[key]]; updateFormatButtons(); return; } }
-  if (!cursor) return;
-  if (e.key === 'Enter') { e.preventDefault(); newline(); }
-  else if (e.key === 'Backspace') { e.preventDefault(); backspace(); }
-  else if (e.key === 'ArrowLeft') { e.preventDefault(); cursor.x--; startX = Math.min(startX, cursor.x); }
-  else if (e.key === 'ArrowRight') { e.preventDefault(); cursor.x++; }
-  else if (e.key === 'ArrowUp') { e.preventDefault(); cursor.y--; }
-  else if (e.key === 'ArrowDown') { e.preventDefault(); cursor.y++; }
-  else return;
-  blink = true; requestDraw(); ensureCursorVisible();
-});
-kb.addEventListener('input', () => {                 // mobile + collage + accents
-  if (!cursor) { resetKb(); return; }
-  const v = kb.value;
-  if (!v.includes(SENT)) { backspace(); }            // la sentinelle a disparu = touche effacer
-  else { for (const ch of [...v.replace(/\u200b/g, '')]) { if (ch === '\n') newline(); else if (ch.trim()) typeChar(ch); else if (ch === ' ') cursor.x++; } }
-  resetKb(); blink = true; requestDraw(); ensureCursorVisible();
-});
-kb.addEventListener('paste', (e) => {
-  if (!cursor) return;
-  e.preventDefault();
-  if (!canWrite()) { toast('🔒 Le mur est verrouillé'); return; }
-  const html = e.clipboardData?.getData('text/html');
-  const plain = e.clipboardData?.getData('text/plain') || '';
-  let rows = [[]];
-  if (html) {
-    const doc = new DOMParser().parseFromString(html, 'text/html');
-    const rgbToHex = v => { const m=v.match(/\d+/g); return m&&m.length>=3 ? '#'+m.slice(0,3).map(n=>(+n).toString(16).padStart(2,'0')).join('') : null; };
-    const walk = (node, style={}) => {
-      if (node.nodeType === Node.TEXT_NODE) {
-        const lines=node.nodeValue.replace(/\r/g,'').split('\n');
-        lines.forEach((line,i)=>{ for(const ch of line) rows[rows.length-1].push({ch,style}); if(i<lines.length-1) rows.push([]); }); return;
-      }
-      if(node.nodeType!==Node.ELEMENT_NODE && node.nodeType!==Node.DOCUMENT_NODE) return;
-      let st={...style};
-      if(node.nodeType===Node.ELEMENT_NODE){
-        const tag=node.tagName.toLowerCase(), css=node.getAttribute('style')||'';
-        if(['b','strong'].includes(tag)||/font-weight\s*:\s*(bold|[6-9]00)/i.test(css)) st.b=true;
-        if(['i','em'].includes(tag)||/font-style\s*:\s*italic/i.test(css)) st.i=true;
-        if(tag==='u'||/text-decoration[^;]*underline/i.test(css)) st.uLine=true;
-        const m=css.match(/(?:^|;)\s*color\s*:\s*(#[0-9a-f]{3,8}|rgb\([^)]*\))/i);
-        if(m) st.col=m[1].startsWith('#')?m[1]:rgbToHex(m[1]);
-        if(['div','p','li','br'].includes(tag)&&rows[rows.length-1].length) rows.push([]);
-      }
-      for(const child of node.childNodes) walk(child,st);
-      if(node.nodeType===Node.ELEMENT_NODE&&['div','p','li'].includes(node.tagName.toLowerCase())&&rows[rows.length-1].length) rows.push([]);
-    };
-    walk(doc.body);
-  } else rows=plain.replace(/\r/g,'').split('\n').map(line=>[...line].map(ch=>({ch,style:{}})));
-  while(rows.length>1&&!rows[rows.length-1].length) rows.pop();
-  rows.forEach((row,ri)=>{if(ri)newline(); row.forEach(it=>typeChar(it.ch,it.style,it.style.col));});
-  resetKb(); blink=true; requestDraw(); ensureCursorVisible();
-});
-kb.addEventListener('focus', resetKb);
-
-// ====== TAP SUR LE CANEVAS ======
-async function onTap(e) {
-  const p = pos(e); hover = p;
-  try {
-    if (DB_URL && !user && mode !== 'read') { showLogin(false); return; }
-    if (mode === 'write') {
-      if (!canWrite()) { toast('🔒 Le mur est verrouillé'); return; }
-      cursor = p; startX = p.x; blink = true; requestDraw();
-      kb.focus({ preventScroll: true });          // ouvre le clavier directement
-      setTimeout(ensureCursorVisible, 300);
-    } else if (mode === 'bomb') {
-      if (!canWrite()) { toast('🔒 Le mur est verrouillé'); return; }
-      const r = curBombR();
-      await loadRect(p.x - r, p.y - r, p.x + r, p.y + r);
-      const patch = {};
-      for (let dx = -r; dx <= r; dx++) for (let dy = -r; dy <= r; dy++) {
-        const s = split(p.x + dx, p.y + dy), ch = chunks[s.ck];
-        if (ch && ch.cells[s.lk]) { patch[s.ck + '/' + s.lk] = null; delete ch.cells[s.lk]; }
-      }
-      const n = Object.keys(patch).length;
-      if (n) await patchCells(patch);
-      toast('💥 ' + n + ' lettre(s) détruite(s)');
-      requestDraw();
-    } else {
-      const c = getCell(p.x, p.y), u = c && safeUrl(c.u);
-      if (u) { const w = window.open(u, '_blank'); if (w) { try { w.opener = null; } catch {} } else toast('Lien bloqué : ' + u); }
-    }
-  } catch { toast('Erreur de connexion'); }
-}
-
-// ====== PANEL ADMIN ======
-function setAdminPosition(position) {
-  const valid = ['left', 'top', 'bottom', 'right'];
-  if (!valid.includes(position)) position = 'right';
-  $('admin').dataset.position = position;
-  ls('tw_admin_position', position);
-  document.querySelectorAll('[data-admin-position]').forEach((btn) => {
-    btn.classList.toggle('on', btn.dataset.adminPosition === position);
-  });
-}
-function openAdmin() { if (!isAdmin) return; $('admin').classList.add('open'); updateMe(); updateStats(); }
-function closeAdmin() { $('admin').classList.remove('open'); }
-$('adminBtn').onclick = () => ($('admin').classList.contains('open') ? closeAdmin() : openAdmin());
-$('superBadge').onclick = () => { if (!isSuperAdmin) return; superMode = true; updateMe(); openAdmin(); refreshSuperAdminList(); }; 
-$('adClose').onclick = closeAdmin;
-
-$('superModeToggle').onclick = () => {
-  if (!isSuperAdmin) { superMode = false; updateMe(); toast('Accès Super Admin refusé'); return; }
-  superMode = !superMode; updateMe();
-  toast(superMode ? '★ Mode Super Admin activé' : 'Mode Super Admin désactivé');
-  if (superMode) refreshSuperAdminList(); else $('superAdminList').textContent = 'Active le mode Super Admin pour consulter les administrateurs.';
-};
-async function fetchRoleData(path) {
-  const t = await getToken(); if (!t) throw new Error('session');
-  const r = await fetch(DB_URL + '/' + path + '.json?auth=' + encodeURIComponent(t));
-  if (!r.ok) throw new Error('rules');
-  return (await r.json()) || {};
-}
-async function refreshSuperAdminList() {
-  const box = $('superAdminList'); if (!box) return;
-  if (!isSuperAdmin || !superMode) { box.textContent = 'Active le mode Super Admin pour consulter les administrateurs.'; return; }
-  box.textContent = 'Chargement…';
-  try {
-    const [admins, supers, profiles] = await Promise.all([fetchRoleData('admins'), fetchRoleData('superAdmins'), fetchRoleData('profiles')]);
-    const ids = new Set([...Object.keys(admins || {}).filter(id => admins[id] === true), ...Object.keys(supers || {}).filter(id => supers[id] === true)]);
-    const entries = [...ids].map(uid => ({uid, name:(profiles[uid] && profiles[uid].name) || 'Pseudo inconnu'})).sort((a,b)=>a.name.localeCompare(b.name));
-    box.replaceChildren();
-    if (!entries.length) { box.textContent = 'Aucun administrateur trouvé.'; return; }
-    for (const entry of entries) {
-      const div = document.createElement('div'); div.className = 'admin-user';
-      const role = supers[entry.uid] === true ? '🌈 Super Admin' : '🟢 Admin';
-      div.textContent = entry.name + ' — ' + role;
-      box.appendChild(div);
-    }
-  } catch { box.textContent = 'Impossible de lire la liste. Vérifie les règles Firebase pour /admins, /superAdmins et /profiles.'; }
-}
-async function setManagedAdmin(revoke) {
-  if (!isSuperAdmin || !superMode) { toast('Active d’abord le mode Super Admin'); return; }
-  const field = $(revoke ? 'superRevokePseudo' : 'superTargetPseudo');
-  const pseudo = field.value.trim().toLowerCase();
-  if (!pseudo) { toast('Saisis le pseudo du joueur'); return; }
-  try {
-    const [profiles, admins, supers] = await Promise.all([fetchRoleData('profiles'), fetchRoleData('admins'), fetchRoleData('superAdmins')]);
-    const match = Object.entries(profiles).find(([uid, profile]) => profile && String(profile.name || '').trim().toLowerCase() === pseudo);
-    if (!match) { toast('Pseudo introuvable : le joueur doit se connecter au moins une fois avec cette version.'); return; }
-    const uid = match[0];
-    if (user && uid === user.uid && revoke) { toast('Tu ne peux pas retirer tes propres droits ici'); return; }
-    if (supers[uid] === true) { toast('Ce joueur est Super Admin : ses droits doivent être gérés séparément.'); return; }
-    const t = await getToken(); if (!t) throw new Error('session');
-    const url = DB_URL + '/admins/' + encodeURIComponent(uid) + '.json?auth=' + encodeURIComponent(t);
-    const r = await fetch(url, { method: revoke ? 'DELETE' : 'PUT', headers: {'Content-Type':'application/json'}, body: revoke ? undefined : 'true' });
-    if (!r.ok) throw new Error('rules');
-    field.value = ''; toast(revoke ? 'Droits admin retirés à ' + match[1].name : match[1].name + ' est maintenant administrateur');
-    await checkAdmin(); await refreshSuperAdminList();
-  } catch { toast('Échec : vérifie les règles Firebase Super Admin'); }
-}
-$('superGrantAdmin').onclick = () => setManagedAdmin(false);
-$('superRevokeAdmin').onclick = () => setManagedAdmin(true);
-$('superRefreshAdmins').onclick = refreshSuperAdminList;
-
-document.querySelectorAll('[data-admin-position]').forEach((btn) => {
-  btn.onclick = () => setAdminPosition(btn.dataset.adminPosition);
-});
-setAdminPosition(ls('tw_admin_position') || 'right');
-
-function updateStats() {
-  if (!$('admin').classList.contains('open')) return;
-  const cx = Math.round((camX + vw / zoom / 2) / CW), cy = Math.round((camY + vh / zoom / 2) / CHT);
-  let loaded = 0, cells = 0;
-  for (const ck in chunks) if (chunks[ck].loaded) { loaded++; cells += Object.keys(chunks[ck].cells).length; }
-  const st = [['Centre', cx + ', ' + cy], ['Zoom', Math.round(zoom * 100) + ' %'], ['Chunks chargés', loaded], ['Lettres en mémoire', cells], ['En attente d\'envoi', Object.keys(pending).length + Object.keys(inflight).length], ['Mur', locked ? '🔒 verrouillé' : '🔓 ouvert']];
-  $('adStats').innerHTML = st.map(([a, b]) => '<div>' + a + '<b>' + b + '</b></div>').join('');
-}
-setInterval(updateStats, 1000);
-
-function armConfirm(btn, label, fn) {
-  const reset = () => { clearTimeout(btn._t); delete btn.dataset.armed; btn.textContent = label; };
-  btn.onclick = () => {
-    if (btn.dataset.armed) { reset(); fn(); return; }
-    btn.dataset.armed = '1'; btn.textContent = 'Clique encore pour confirmer'; btn._t = setTimeout(reset, 3500);
-  };
-}
-
-$('adGo').onclick = () => {
-  const x = parseInt($('adX').value), y = parseInt($('adY').value);
-  if (isNaN(x) || isNaN(y)) return toast('Renseigne x et y');
-  centerOn(x, y); requestDraw(); scheduleSync();
-};
-$('adR').oninput = () => {
-  bombR = +$('adR').value; $('adRv').textContent = bombR;
-  if (mode === 'bomb') $('dockInfo').textContent = bombInfo();
-  requestDraw();
-};
-$('adLock').onchange = async () => {
-  const v = $('adLock').checked;
-  try {
-    const t = await getToken();
-    const r = await fetch(DB_URL + '/settings/locked.json?auth=' + encodeURIComponent(t), { method: 'PUT', body: JSON.stringify(v) });
-    if (!r.ok) throw new Error('refus');
-    locked = v; $('lockPill').style.display = locked ? '' : 'none'; toast(v ? '🔒 Mur verrouillé' : '🔓 Mur déverrouillé');
-  } catch { $('adLock').checked = locked; toast('Échec : vérifie les règles Firebase'); }
-  updateStats();
-};
-$('adDelBy').onclick = async () => {
-  const who = $('adBy').value.trim().toLowerCase();
-  if (!who) return toast('Renseigne un pseudo');
-  const patch = {};
-  for (const ck in chunks) { const ch = chunks[ck]; for (const lk in ch.cells) if (String(ch.cells[lk].by || '').toLowerCase() === who) { patch[ck + '/' + lk] = null; delete ch.cells[lk]; } }
-  const n = Object.keys(patch).length;
-  try { if (n) await patchCells(patch); toast('🧹 ' + n + ' lettre(s) effacée(s)'); } catch { toast('Échec de la suppression'); }
-  requestDraw();
-};
-armConfirm($('adClearChunk'), 'Effacer le chunk au centre de l\'écran', async () => {
-  const s = split(Math.round((camX + vw / zoom / 2) / CW), Math.round((camY + vh / zoom / 2) / CHT));
-  try { await patchCells({ [s.ck]: null }); ensureChunk(s.ck).cells = {}; for (const p in pending) if (p.startsWith(s.ck + '/')) delete pending[p]; toast('🧹 Chunk ' + s.ck + ' effacé'); } catch { toast('Échec de la suppression'); }
-  requestDraw();
-});
-armConfirm($('adWipe'), 'Tout effacer', async () => {
-  try {
-    if (!DB_URL) ls('tw_chunks', '{}');
-    else { const t = await getToken(); const r = await fetch(DB_URL + '/chunks.json?auth=' + encodeURIComponent(t), { method: 'DELETE' }); if (!r.ok) throw new Error('refus'); }
-    for (const ck in chunks) delete chunks[ck]; pending = {}; inflight = {};
-    toast('💥 Mur entièrement effacé'); scheduleSync();
-  } catch { toast('Échec : vérifie les règles Firebase'); }
-  requestDraw();
-});
-$('adMigrate').onclick = async () => {
-  if (!DB_URL) return toast('Rien à importer en mode local');
-  if (!isAdmin) return toast('Import réservé aux administrateurs');
-  const btn = $('adMigrate'); btn.disabled = true;
-  try {
-    const token = await getToken();
-    if (!token) throw new Error('Session expirée : reconnecte-toi');
-    const r = await fetch(DB_URL + '/cells.json?auth=' + encodeURIComponent(token));
-    if (!r.ok) throw new Error('Lecture de /cells refusée (HTTP ' + r.status + ')');
-    const old = (await r.json()) || {}, grouped = {};
-    let count = 0;
-    for (const [key, raw] of Object.entries(old)) {
-      // Ancien format : /cells/"x,y" = {c,col,u,by,...}
-      const m = /^(-?\d+),(-?\d+)$/.exec(key);
-      if (!m || !raw || typeof raw.c !== 'string' || !raw.c.length) continue;
-      const pos = split(+m[1], +m[2]);
-      (grouped[pos.ck] ||= {})[pos.lk] = raw;
-      count++;
-    }
-    if (!count) throw new Error('Aucune cellule valide trouvée dans /cells. Vérifie que l’ancien mur est bien stocké sous /cells/x,y.');
-    const keys = Object.keys(grouped);
-    for (let i = 0; i < keys.length; i++) {
-      const ck = keys[i];
-      const wr = await fetch(DB_URL + '/chunks/' + encodeURIComponent(ck) + '/cells.json?auth=' + encodeURIComponent(token), {
-        method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(grouped[ck])
-      });
-      if (!wr.ok) throw new Error('Écriture du chunk ' + ck + ' refusée (HTTP ' + wr.status + '). Vérifie les règles Firebase.');
-    }
-    for (const ck in chunks) { chunks[ck].loaded = false; chunks[ck].last = 0; }
-    toast('📦 Import terminé : ' + count + ' lettres dans ' + keys.length + ' chunks');
-    await syncChunks(); requestDraw();
-  } catch (err) {
-    console.error('Import ancien mur:', err);
-    toast('Échec de l’import : ' + (err && err.message ? err.message : 'erreur inconnue'));
-  } finally { btn.disabled = false; }
-};
-
-document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { if (cpOpen) closeCP(); else if ($('admin').classList.contains('open')) closeAdmin(); else if ($('login').style.display === 'flex') hideLogin(); } });
-
-// ====== DÉMARRAGE ======
-(function init() {
-  resize();
-  let v = null; try { v = JSON.parse(ls('tw_view') || 'null'); } catch {}
-  if (v && isFinite(v.x) && isFinite(v.y) && isFinite(v.z)) { zoom = clamp(v.z, MIN_Z, MAX_Z); centerOn(v.x, v.y); }
-  else centerOn(50, 30);
-  $('zLbl').textContent = Math.round(zoom * 100) + ' %';
-  setMode('write');
-  initAuth(); pollSettings(); syncChunks();
-  let tick = 0;
-  setInterval(() => { if (document.hidden) return; refreshVisible(); syncChunks(); if (++tick % 2 === 0) pollSettings(); }, 3000);
-  document.addEventListener('visibilitychange', () => { if (!document.hidden) { refreshVisible(); pollSettings(); } });
-})();
+initAuth();
+pollSettings();
+setTimeout(() => { updateMe(); }, 50);
 </script>
 </body>
 </html>
