@@ -524,7 +524,10 @@ async function authCall(method, body) {
 }
 function authMsg(e) {
   const m = String(e.message || e);
-  if (m.includes('NOT_ADMIN')) return 'Ce compte n’est pas reconnu comme admin. Vérifie que son UID Firebase correspond exactement à /admins/<UID> ou /superAdmins/<UID> et que les règles autorisent la lecture.';
+  if (m.includes('NOT_ADMIN')) {
+    const connectedUid = user && user.uid ? user.uid : '(UID indisponible)';
+    return 'Ce compte n’est pas reconnu comme admin. UID Firebase actuellement connecté : ' + connectedUid + '. Dans Realtime Database, ajoute exactement /superAdmins/' + connectedUid + ' = true (ou /admins/' + connectedUid + ' = true), puis vérifie les règles de lecture.';
+  }
   if (m.includes('EMAIL_EXISTS')) return 'Ce pseudo est déjà pris.';
   if (m.includes('WEAK_PASSWORD')) return 'Mot de passe trop court (6 caractères minimum).';
   if (m.includes('INVALID_LOGIN') || m.includes('EMAIL_NOT_FOUND') || m.includes('INVALID_PASSWORD')) return 'Pseudo ou mot de passe incorrect.';
@@ -665,7 +668,9 @@ async function checkAdmin() {
         isSuperAdmin = superValue === true;
         isAdmin = isSuperAdmin || adminValue === true;
         if (!sr.ok) console.warn('Wordswar : lecture de /superAdmins/' + user.uid + ' refusée (HTTP ' + sr.status + '). Vérifie les règles Firebase.');
+        else if (superValue !== true) console.info('Wordswar : /superAdmins/' + user.uid + ' vaut ' + JSON.stringify(superValue) + ', donc cet UID n’est pas Super Admin.');
         if (!ar.ok) console.warn('Wordswar : lecture de /admins/' + user.uid + ' refusée (HTTP ' + ar.status + '). Vérifie les règles Firebase.');
+        else if (adminValue !== true) console.info('Wordswar : /admins/' + user.uid + ' vaut ' + JSON.stringify(adminValue) + ', donc cet UID n’est pas Admin.');
         adminUIDs.clear(); superAdminUIDs.clear();
         if (allSr.ok) { const all = await allSr.json(); if (all && typeof all === 'object') Object.keys(all).forEach(uid => { if (all[uid] === true) superAdminUIDs.add(uid); }); }
         if (allAr.ok) { const all = await allAr.json(); if (all && typeof all === 'object') Object.keys(all).forEach(uid => { if (all[uid] === true) adminUIDs.add(uid); }); }
