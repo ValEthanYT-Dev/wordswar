@@ -38,6 +38,8 @@
   #linkRow button { font:inherit; font-weight:600; border:0; border-radius:10px; padding:0 16px; cursor:pointer; color:#fff; background:var(--acc2); }
   .meBtn { font:inherit; font-size:14px; color:var(--txt); background:#0d0f15; border:1px solid var(--line); border-radius:10px; padding:8px 12px; cursor:pointer; }
   #adminBtn { border-color:var(--acc); }
+  #adminBtn.super-admin-button { border-color:#ff65c5; color:#fff; background:linear-gradient(100deg,#ff4d4d,#ffb84d,#fff34d,#54e879,#43c5ff,#a56bff,#ff65c5); background-size:220% 100%; animation:superRainbow 3s linear infinite; text-shadow:0 1px 3px #000a; font-weight:800; }
+  @keyframes superRainbow { to { background-position:220% 0; } }
   #superBadge { display:none; border:1px solid #e8c84a; border-radius:999px; padding:7px 10px; font-size:12px; font-weight:800; cursor:pointer; background:#0d0f15; }
   #superBadge.on { display:inline-flex; background-image:linear-gradient(90deg,#ff4d4d,#ffb84d,#fff34d,#54e879,#43c5ff,#a56bff,#ff65c5); color:transparent; -webkit-background-clip:text; background-clip:text; }
   .online-count { flex:0 0 auto; white-space:nowrap; font-size:12px; color:#35e879; border:1px solid #35e87955; border-radius:999px; padding:6px 9px; }
@@ -522,7 +524,7 @@ async function authCall(method, body) {
 }
 function authMsg(e) {
   const m = String(e.message || e);
-  if (m.includes('NOT_ADMIN')) return 'Ce compte n’est ni Admin ni Super Admin dans Firebase (/admins ou /superAdmins).';
+  if (m.includes('NOT_ADMIN')) return 'Ce compte n’est pas reconnu comme admin. Vérifie que son UID Firebase correspond exactement à /admins/<UID> ou /superAdmins/<UID> et que les règles autorisent la lecture.';
   if (m.includes('EMAIL_EXISTS')) return 'Ce pseudo est déjà pris.';
   if (m.includes('WEAK_PASSWORD')) return 'Mot de passe trop court (6 caractères minimum).';
   if (m.includes('INVALID_LOGIN') || m.includes('EMAIL_NOT_FOUND') || m.includes('INVALID_PASSWORD')) return 'Pseudo ou mot de passe incorrect.';
@@ -633,8 +635,12 @@ function updateMe() {
   $('me').textContent = user ? '👤 ' + user.name : '🔑 Connexion';
   $('adminBtn').hidden = !isAdmin;
   $('adminBtn').textContent = isSuperAdmin ? '🌈 Super Admin' : '🛡️ Admin';
+  $('adminBtn').classList.toggle('super-admin-button', isSuperAdmin);
   $('superBadge').hidden = !isSuperAdmin; $('superBadge').classList.toggle('on', isSuperAdmin);
   $('admin').classList.toggle('super-mode', isSuperAdmin && superMode);
+  // Ne jamais afficher les commandes Super Admin à un admin classique.
+  const superSection = $('superAdminSection');
+  if (superSection) superSection.hidden = !(isSuperAdmin && superMode);
   const sm = $('superModeToggle'); if (sm) sm.textContent = superMode ? 'Désactiver le mode Super Admin' : 'Activer le mode Super Admin';
   // La Méga-bombe n'est même pas affichée aux comptes non administrateurs.
   $('mMegaBomb').hidden = !isAdmin;
@@ -653,8 +659,13 @@ async function checkAdmin() {
           fetch(DB_URL + '/superAdmins.json' + auth),
           fetch(DB_URL + '/admins.json' + auth)
         ]);
-        isSuperAdmin = sr.ok && (await sr.json()) === true;
-        isAdmin = isSuperAdmin || (ar.ok && (await ar.json()) === true);
+        // Distinguer un rôle absent d'une lecture refusée par les règles Firebase.
+        const superValue = sr.ok ? await sr.json() : null;
+        const adminValue = ar.ok ? await ar.json() : null;
+        isSuperAdmin = superValue === true;
+        isAdmin = isSuperAdmin || adminValue === true;
+        if (!sr.ok) console.warn('Wordswar : lecture de /superAdmins/' + user.uid + ' refusée (HTTP ' + sr.status + '). Vérifie les règles Firebase.');
+        if (!ar.ok) console.warn('Wordswar : lecture de /admins/' + user.uid + ' refusée (HTTP ' + ar.status + '). Vérifie les règles Firebase.');
         adminUIDs.clear(); superAdminUIDs.clear();
         if (allSr.ok) { const all = await allSr.json(); if (all && typeof all === 'object') Object.keys(all).forEach(uid => { if (all[uid] === true) superAdminUIDs.add(uid); }); }
         if (allAr.ok) { const all = await allAr.json(); if (all && typeof all === 'object') Object.keys(all).forEach(uid => { if (all[uid] === true) adminUIDs.add(uid); }); }
@@ -662,7 +673,9 @@ async function checkAdmin() {
       }
     } catch {}
   }
-  if (!isSuperAdmin) superMode = false;
+  // Un Super Admin possède automatiquement les droits admin et son mode de gestion est activé.
+  if (isSuperAdmin) { isAdmin = true; superMode = true; }
+  else superMode = false;
   updateMe(); return isAdmin;
 }
 
@@ -777,41 +790,28 @@ function draw() {
   }
   if (mode === 'read' && hover) {
     const c = getCell(hover.x, hover.y);
-    if (c) {
+    if (c && typeof c.c === 'string') {
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      const author = String(c.by || '?').slice(0, 20);
+      const author = String(c.by || c.author || 'Auteur inconnu').slice(0, 20);
       const urlPart = safeUrl(c.u) ? ' · ' + safeUrl(c.u) : '';
-      const prefix = 'par ';
-      const label = prefix + author + urlPart;
-      const authorUid = String(c.byUid || '');
+      const authorUid = String(c.byUid || c.uid || '');
       const isAuthorSuperAdmin = c.sup === true || (!!authorUid && superAdminUIDs.has(authorUid));
-      const isAuthorAdmin = isAuthorSuperAdmin || (!!authorUid && adminUIDs.has(authorUid)) || c.adm === true || author.toUpperCase() === 'V4L3N7IN_ADMIN';
-      ctx.font = '13px system-ui, sans-serif'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
-      const w = ctx.measureText(label).width + 16;
+      const isAuthorAdmin = isAuthorSuperAdmin || (!!authorUid && adminUIDs.has(authorUid)) || c.adm === true;
+      const role = isAuthorSuperAdmin ? ' 🌈 Super Admin' : isAuthorAdmin ? ' 🟢 Admin' : '';
+      const label = 'Par ' + author + role + urlPart;
+      ctx.font = '600 13px system-ui, sans-serif'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+      const w = Math.min(vw, ctx.measureText(label).width + 20);
       const sx = (hover.x * CW - camX) * zoom, sy = (hover.y * CHT - camY) * zoom;
-      const bx = clamp(sx, 0, Math.max(0, vw - w)), by = Math.max(0, sy - 28);
-      ctx.fillStyle = '#161923ee'; ctx.fillRect(bx, by, w, 24);
-      const ty = by + 12;
-      if (isAuthorSuperAdmin) {
-        // Le pseudo du Super Admin est arc-en-ciel.
-        let tx = bx + 8;
-        ctx.fillStyle = '#fff'; ctx.fillText(prefix, tx, ty);
-        tx += ctx.measureText(prefix).width;
-        Array.from(author).forEach((ch, i) => {
-          ctx.fillStyle = 'hsl(' + Math.round(i * 360 / Math.max(author.length, 1)) + ', 100%, 62%)';
-          ctx.fillText(ch, tx, ty);
-          tx += ctx.measureText(ch).width;
-        });
-        if (urlPart) { ctx.fillStyle = '#fff'; ctx.fillText(urlPart, tx, ty); }
-      } else if (isAuthorAdmin) {
-        // Le pseudo des administrateurs classiques est vert.
-        ctx.fillStyle = '#35e879'; ctx.fillText(prefix, bx + 8, ty);
-        const prefixWidth = ctx.measureText(prefix).width;
-        ctx.fillStyle = '#35e879'; ctx.fillText(author, bx + 8 + prefixWidth, ty);
-        if (urlPart) { ctx.fillStyle = '#fff'; ctx.fillText(urlPart, bx + 8 + prefixWidth + ctx.measureText(author).width, ty); }
-      } else {
-        ctx.fillStyle = '#fff'; ctx.fillText(label, bx + 8, ty);
-      }
+      const bx = clamp(sx, 0, Math.max(0, vw - w)), by = clamp(sy - 32, 0, Math.max(0, vh - 28));
+      ctx.fillStyle = '#161923f5'; ctx.fillRect(bx, by, w, 26);
+      ctx.strokeStyle = isAuthorSuperAdmin ? '#ff65c5' : isAuthorAdmin ? '#35e879' : '#8f76ff';
+      ctx.lineWidth = 1.5; ctx.strokeRect(bx + .75, by + .75, Math.max(0, w - 1.5), 24.5);
+      const ty = by + 13; let tx = bx + 9;
+      ctx.fillStyle = '#ffffff'; ctx.fillText('Par ', tx, ty); tx += ctx.measureText('Par ').width;
+      ctx.fillStyle = isAuthorSuperAdmin ? '#ff65c5' : isAuthorAdmin ? '#35e879' : '#ffffff';
+      ctx.fillText(author, tx, ty); tx += ctx.measureText(author).width;
+      if (role) { ctx.fillStyle = isAuthorSuperAdmin ? '#ffb8e8' : '#35e879'; ctx.fillText(role, tx, ty); tx += ctx.measureText(role).width; }
+      if (urlPart && tx < bx + w - 4) { ctx.fillStyle = '#d5d8e8'; ctx.fillText(urlPart, tx, ty, Math.max(0, bx + w - tx - 4)); }
     }
   }
 }
@@ -1152,7 +1152,7 @@ $('superBadge').onclick = () => { if (!isSuperAdmin) return; superMode = true; u
 $('adClose').onclick = closeAdmin;
 
 $('superModeToggle').onclick = () => {
-  if (!isSuperAdmin) { toast('Accès Super Admin refusé'); return; }
+  if (!isSuperAdmin) { superMode = false; updateMe(); toast('Accès Super Admin refusé'); return; }
   superMode = !superMode; updateMe();
   toast(superMode ? '★ Mode Super Admin activé' : 'Mode Super Admin désactivé');
   if (superMode) refreshSuperAdminList(); else $('superAdminList').textContent = 'Active le mode Super Admin pour consulter les administrateurs.';
