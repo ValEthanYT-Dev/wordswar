@@ -5,9 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content">
 <meta name="color-scheme" content="dark">
 <title>Text War</title>
-<!-- SDKs Firebase (compat) -->
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
   :root { --bg:#0d0f15; --card:#161923; --line:#262a39; --txt:#e9eaf2; --mute:#8a8fa5; --acc:#8f76ff; --acc2:#6c4dff; --danger:#ff5468; }
   * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
@@ -43,6 +41,9 @@
   #login .b { font:inherit; font-weight:600; border:0; border-radius:10px; padding:11px; cursor:pointer; color:#fff; background:linear-gradient(135deg,var(--acc),var(--acc2)); }
   #login .b.alt { background:transparent; border:1px solid var(--line); color:var(--txt); font-weight:500; }
   #login .b.ghost { background:transparent; color:var(--mute); font-weight:400; font-size:13px; padding:6px; }
+  #login .b.google { display:flex; align-items:center; justify-content:center; gap:10px; background:#fff; color:#1f1f1f; border:1px solid #dadce0; font-weight:600; }
+  #login .sep { display:flex; align-items:center; gap:10px; color:var(--mute); font-size:12px; margin:2px 0; }
+  #login .sep::before, #login .sep::after { content:""; flex:1; height:1px; background:var(--line); }
   #loginErr { color:var(--danger); font-size:13px; min-height:16px; }
   #wrap { flex:1; overflow:auto; position:relative; background:var(--bg); }
   #sheet { display:inline-block; margin:14px; border-radius:6px; box-shadow:0 8px 30px #000a, 0 0 0 1px var(--line); background:#fff; line-height:0; }
@@ -104,19 +105,17 @@
 <div id="login">
   <form class="card" id="loginForm" autocomplete="on">
     <h2>🧱 Text War</h2>
-    <p>Choisis un pseudo et un mot de passe ou connecte-toi avec Google.</p>
+    <p>Choisis un pseudo et un mot de passe pour écrire sur le mur.</p>
     <input id="lUser" name="username" placeholder="Pseudo (3-20 lettres, chiffres, _)" maxlength="20" autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false">
     <input id="lPass" name="password" type="password" placeholder="Mot de passe (6 caractères min.)" autocomplete="current-password">
     <div id="loginErr"></div>
     <button class="b" type="submit" id="bIn">Se connecter</button>
     <button class="b alt" type="button" id="bUp">Créer un compte</button>
-    
-    <!-- BOUTON DE CONNEXION GOOGLE (Redirection) -->
-    <button class="b alt" type="button" id="bGoogle" style="display:flex; align-items:center; justify-content:center; gap:8px;">
-      <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.74-.06-1.28-.19-1.84H9v3.34h4.96c-.1.83-.64 2.08-1.84 2.92l-.01.12 2.73 2.12.19.02c1.76-1.63 2.77-4.03 2.77-6.68z"/><path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.91-2.26c-.8.54-1.83.88-3.05.88-2.34 0-4.33-1.58-5.04-3.71l-.11.01-2.84 2.2-.04.1C2.45 15.68 5.48 18 9 18z"/><path fill="#FBBC05" d="M3.96 10.73c-.18-.54-.28-1.12-.28-1.73s.1-1.19.28-1.73l-.01-.15-2.84-2.2-.09.05C.36 6.3 0 7.6 0 9s.36 2.7 1.02 4.02l2.94-2.29z"/><path fill="#EA4335" d="M9 3.58c1.69 0 2.83.73 3.48 1.34l2.54-2.48C13.45.97 11.43 0 9 0 5.48 0 2.45 2.32 1.02 5.98l2.94 2.29C4.67 5.16 6.66 3.58 9 3.58z"/></svg>
-      Se connecter avec Google
+    <div class="sep">ou</div>
+    <button class="b google" type="button" id="bGoogle">
+      <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+      Continuer avec Google
     </button>
-
     <button class="b ghost" type="button" id="bSkip">Fermer</button>
   </form>
   <div class="card" id="acct" style="display:none">
@@ -129,21 +128,19 @@
 
 <script>
 // ====== CONFIG ======
+// Colle ici l'URL de ta Realtime Database Firebase (sans slash final), ex :
+// const DB_URL = 'https://mon-projet-default-rtdb.europe-west1.firebasedatabase.app';
 const DB_URL = 'https://words-war-fc84c-default-rtdb.europe-west1.firebasedatabase.app';
+// Clé API Web de ton projet Firebase (Paramètres du projet → Général → « Clé API Web »).
+// Elle sert à la connexion pseudo + mot de passe. Elle n'est pas secrète.
 const API_KEY = 'AIzaSyA-Xm_dU5-IGiKhqFOmLJt5dMSuwkq9WPg';
 
-// Initialisation de Firebase Auth (Compat)
-const firebaseConfig = {
-  apiKey: API_KEY,
-  authDomain: "words-war-fc84c.firebaseapp.com",
-  databaseURL: DB_URL
-};
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const googleProvider = new firebase.auth.GoogleAuthProvider();
+// ID client OAuth « Web » pour la connexion Google (Firebase → Authentication → Sign-in method → Google → « ID client Web »,
+// ou Google Cloud Console → API et services → Identifiants). Format : 123456789-xxxx.apps.googleusercontent.com
+const GOOGLE_CLIENT_ID = '509773191790-n1ts912gv7ucd9kdl2s3nvrn7cc3vvhl.apps.googleusercontent.com';
 
-const W = 100, H = 60;
-const CS = 20;
+const W = 100, H = 60;        // taille du canevas
+const CS = 20;                // taille d'une case en px
 const BOMB_R = 3;
 const COLORS = ['#111111', '#e63946', '#ff8c1a', '#f4c20d', '#2eb872', '#14b8c4', '#2f6df6', '#7c3aed', '#e83e9c', '#8a8fa5'];
 
@@ -152,7 +149,7 @@ const $ = (id) => document.getElementById(id);
 const cv = $('cv'), ctx = cv.getContext('2d'), kb = $('kb');
 let cells = {}, mode = 'write', cursor = null, startX = 0, hover = null, blink = true;
 let color = COLORS[0], link = '';
-const SENT = '​';
+const SENT = '​';       // caractère « sentinelle » pour détecter la touche effacer sur mobile
 
 function ls(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch {} }
 const storageOK = (() => { try { localStorage.setItem('tw_probe', '1'); localStorage.removeItem('tw_probe'); return true; } catch { return false; } })();
@@ -164,13 +161,13 @@ function toast(t) { const m = $('msg'); m.textContent = t; m.classList.add('show
 function safeUrl(u) { u = String(u || '').trim().slice(0, 300); return /^https?:\/\//i.test(u) ? u : ''; }
 function safeCol(c) { return /^#[0-9a-f]{6}$/i.test(c) ? c : '#111111'; }
 
-// ====== STOCKAGE ======
+// ====== STOCKAGE (Firebase REST, ou localStorage en secours) ======
 async function loadCells() {
   if (!DB_URL) { try { return JSON.parse(ls('tw_cells') || '{}'); } catch { return {}; } }
   const r = await fetch(DB_URL + '/cells.json');
   return (await r.json()) || {};
 }
-async function patchCells(obj) {
+async function patchCells(obj) {   // obj : { "x,y": {…} ou null pour supprimer }
   if (!DB_URL) {
     const all = JSON.parse(ls('tw_cells') || '{}');
     for (const k in obj) { if (obj[k] === null) delete all[k]; else all[k] = obj[k]; }
@@ -183,6 +180,7 @@ async function patchCells(obj) {
   if (!r.ok) throw new Error('Erreur serveur');
 }
 
+// Les touches tapées s'affichent tout de suite, puis partent au serveur par petits paquets
 let pending = {}, inflight = {}, flushTimer = null;
 function setCell(k, val) {
   if (val === null) delete cells[k]; else cells[k] = val;
@@ -197,8 +195,8 @@ async function flush() {
   for (const k in sent) if (inflight[k] === sent[k]) delete inflight[k];
 }
 
-// ====== COMPTE ======
-let user = null;
+// ====== COMPTE (pseudo + mot de passe, via Firebase Auth) ======
+let user = null;   // { name, refreshToken, idToken, exp }
 const AUTH_URL = 'https://identitytoolkit.googleapis.com/v1/accounts:';
 const pseudoEmail = (p) => p.toLowerCase() + '@textwar.example';
 const myName = () => (user ? user.name : 'Anonyme').slice(0, 20);
@@ -215,12 +213,13 @@ function authMsg(e) {
   if (m.includes('WEAK_PASSWORD')) return 'Mot de passe trop court (6 caractères minimum).';
   if (m.includes('INVALID_LOGIN') || m.includes('EMAIL_NOT_FOUND') || m.includes('INVALID_PASSWORD')) return 'Pseudo ou mot de passe incorrect.';
   if (m.includes('TOO_MANY')) return 'Trop d\'essais, réessaie plus tard.';
-  if (m.includes('OPERATION_NOT_ALLOWED')) return 'Active l\'authentification dans Firebase.';
+  if (m.includes('OPERATION_NOT_ALLOWED')) return 'Active ce mode de connexion (E-mail/Mot de passe ou Google) dans Firebase → Authentication.';
+  if (m.includes('INVALID_IDP_RESPONSE') || m.includes('INVALID_CREDENTIAL')) return 'Connexion Google refusée : vérifie l\'ID client et les origines autorisées.';
   return 'Erreur : ' + m;
 }
 function setSession(j, name) {
   user = { name, refreshToken: j.refreshToken, idToken: j.idToken, exp: Date.now() + (parseInt(j.expiresIn) || 3600) * 1000 };
-  ls('tw_session', JSON.stringify({ name, refreshToken: user.refreshToken }));
+  ls('tw_session', JSON.stringify({ name, refreshToken: j.refreshToken }));
   updateMe();
 }
 async function signIn(pseudo, pass) {
@@ -230,55 +229,36 @@ async function signIn(pseudo, pass) {
 async function signUp(pseudo, pass) {
   const j = await authCall('signUp', { email: pseudoEmail(pseudo), password: pass, returnSecureToken: true });
   await authCall('update', { idToken: j.idToken, displayName: pseudo, returnSecureToken: false });
-  await signIn(pseudo, pass);
+  await signIn(pseudo, pass);     // nouveau jeton qui contient le pseudo
 }
-
-// Connexion Google via Redirection (contourne les blocages de domaines dynamiques)
-$('bGoogle').onclick = async () => {
-  try {
-    await auth.signInWithRedirect(googleProvider);
-  } catch (e) {
-    $('loginErr').textContent = "Erreur de connexion Google : " + e.message;
-  }
-};
-
-// Gestion du retour de redirection Google et état global
-auth.onAuthStateChanged(async (u) => {
-  if (u) {
-    const idToken = await u.getIdToken();
-    user = {
-      name: u.displayName || u.email.split('@')[0],
-      refreshToken: u.refreshToken,
-      idToken: idToken,
-      exp: Date.now() + 3600 * 1000
-    };
-    ls('tw_session', JSON.stringify({ name: user.name, refreshToken: user.refreshToken }));
-    updateMe();
-  } else {
-    if (user && !user.refreshToken) {
-      user = null;
-      updateMe();
-    }
-  }
-});
-
-// Vérification au chargement de la fin d'une redirection Google
-auth.getRedirectResult().then((result) => {
-  if (result && result.user) {
-    toast('Bienvenue ' + (result.user.displayName || 'joueur') + ' 👋');
-  }
-}).catch((error) => {
-  showLogin();
-  $('loginErr').textContent = "Erreur redirection Google : " + error.message;
-});
-
+function googleName(j) {
+  const n = String(j.displayName || (j.email || '').split('@')[0] || 'Joueur').replace(/\s+/g, ' ').trim();
+  return n.slice(0, 20) || 'Joueur';
+}
+function signInGoogle() {
+  const err = (t) => { $('loginErr').textContent = t; };
+  if (!DB_URL || !API_KEY) return err('Firebase n\'est pas configuré : remplis DB_URL et API_KEY dans index.html.');
+  if (!GOOGLE_CLIENT_ID) return err('Renseigne GOOGLE_CLIENT_ID dans index.html.');
+  if (!(window.google && google.accounts && google.accounts.oauth2)) return err('Google n\'est pas chargé (connexion ou bloqueur de pub ?).');
+  err('…');
+  google.accounts.oauth2.initTokenClient({
+    client_id: GOOGLE_CLIENT_ID,
+    scope: 'openid email profile',
+    callback: async (resp) => {
+      if (!resp || resp.error) return err('Connexion Google annulée.');
+      try {
+        const j = await authCall('signInWithIdp', {
+          postBody: 'access_token=' + encodeURIComponent(resp.access_token) + '&providerId=google.com',
+          requestUri: 'http://localhost', returnSecureToken: true, returnIdpCredential: true });
+        setSession(j, googleName(j));
+        hideLogin(); toast('Bienvenue ' + user.name + ' 👋');
+      } catch (e) { err(authMsg(e)); }
+    },
+    error_callback: () => err('Fenêtre Google bloquée ou fermée.')
+  }).requestAccessToken();
+}
 async function getToken() {
   if (!user) return null;
-  if (auth.currentUser) {
-    try {
-      return await auth.currentUser.getIdToken(true);
-    } catch { return null; }
-  }
   if (user.exp - Date.now() > 60000) return user.idToken;
   try {
     const r = await fetch('https://securetoken.googleapis.com/v1/token?key=' + API_KEY, {
@@ -291,14 +271,7 @@ async function getToken() {
     return user.idToken;
   } catch { signOut(); return null; }
 }
-
-function signOut() { 
-  auth.signOut();
-  user = null; 
-  ls('tw_session', ''); 
-  updateMe(); 
-}
-
+function signOut() { user = null; ls('tw_session', ''); updateMe(); }
 function updateMe() {
   $('me').textContent = user ? '👤 ' + user.name : '🔑 Connexion';
 }
@@ -311,23 +284,22 @@ function showAccount() {
   $('acctName').textContent = '👤 ' + user.name; $('login').style.display = 'flex'; kb.blur();
 }
 function hideLogin() { $('login').style.display = 'none'; $('loginErr').textContent = ''; }
-
 async function doAuth(fn) {
-  if (!DB_URL || !API_KEY) { $('loginErr').textContent = 'Firebase n\'est pas configuré.'; return; }
+  if (!DB_URL || !API_KEY) { $('loginErr').textContent = 'Firebase n\'est pas configuré : remplis DB_URL et API_KEY dans index.html.'; return; }
   const p = $('lUser').value.trim(), w = $('lPass').value;
   if (!/^[A-Za-z0-9_]{3,20}$/.test(p)) { $('loginErr').textContent = 'Pseudo : 3 à 20 lettres, chiffres ou _'; return; }
   if (w.length < 6) { $('loginErr').textContent = 'Mot de passe : 6 caractères minimum'; return; }
   $('loginErr').textContent = '…';
-  try { await fn(p, w); hideLogin(); $('lPass').value = ''; toast(storageOK ? 'Bienvenue ' + user.name + ' 👋' : 'Bienvenue ' + user.name); }
+  try { await fn(p, w); hideLogin(); $('lPass').value = ''; toast(storageOK ? 'Bienvenue ' + user.name + ' 👋' : 'Bienvenue ' + user.name + ' (connexion non mémorisée dans ce cadre)'); }
   catch (e) { $('loginErr').textContent = authMsg(e); }
 }
 $('loginForm').addEventListener('submit', (e) => { e.preventDefault(); doAuth(signIn); });
 $('bUp').onclick = () => doAuth(signUp);
+$('bGoogle').onclick = signInGoogle;
 $('bSkip').onclick = hideLogin;
 $('me').onclick = () => { if (user) showAccount(); else showLogin(); };
 $('bOut').onclick = () => { signOut(); hideLogin(); toast('Déconnecté'); };
 $('bClose').onclick = hideLogin;
-
 async function initAuth() {
   updateMe();
   if (!DB_URL) return;
@@ -378,11 +350,11 @@ function draw() {
 }
 setInterval(() => { if (mode === 'write' && cursor) { blink = !blink; draw(); } }, 500);
 
-// ====== COULEURS & LIEN ======
+// ====== COULEURS & LIEN (barre du bas) ======
 const sw = $('swatches');
 COLORS.forEach((c) => {
   const b = document.createElement('button'); b.className = 'sw' + (c === color ? ' on' : ''); b.style.background = c; b.dataset.c = c;
-  b.addEventListener('pointerdown', (e) => e.preventDefault());
+  b.addEventListener('pointerdown', (e) => e.preventDefault());   // garde le clavier ouvert
   b.onclick = () => pickColor(c);
   sw.appendChild(b);
 });
@@ -426,7 +398,7 @@ $('mWrite').onclick = () => setMode('write');
 $('mBomb').onclick = () => setMode('bomb');
 $('mRead').onclick = () => setMode('read');
 
-// ====== CLAVIER ======
+// ====== ÉCRITURE AU CLAVIER ======
 function refocus() { if (mode === 'write' && cursor) kb.focus({ preventScroll: true }); }
 function resetKb() { kb.value = SENT; try { kb.setSelectionRange(1, 1); } catch {} }
 
@@ -456,15 +428,15 @@ kb.addEventListener('keydown', (e) => {
   else return;
   blink = true; draw(); scrollToCursor();
 });
-kb.addEventListener('input', () => {
+kb.addEventListener('input', () => {                 // mobile + collage + accents
   const v = kb.value;
-  if (!v.includes(SENT)) { backspace(); }
+  if (!v.includes(SENT)) { backspace(); }            // la sentinelle a disparu = touche effacer
   else { for (const ch of [...v.replace(/​/g, '')]) { if (ch === '\n') newline(); else if (ch.trim()) typeChar(ch); else if (ch === ' ') { cursor.x = Math.min(W, cursor.x + 1); if (cursor.x >= W) newline(); } } }
   resetKb(); blink = true; draw(); scrollToCursor();
 });
 kb.addEventListener('focus', resetKb);
 
-// ====== CLICS CANEVAS ======
+// ====== CLICS SUR LE CANEVAS ======
 function pos(e) {
   const r = cv.getBoundingClientRect();
   return { x: Math.floor((e.clientX - r.left) / CS), y: Math.floor((e.clientY - r.top) / CS) };
@@ -479,6 +451,7 @@ function scrollToCursor() {
   if (cy < w.top + 20 || cy > w.bottom - 50) wrap.scrollTop += cy - (w.top + w.height / 2);
   if (cx < w.left + 10 || cx > w.right - 50) wrap.scrollLeft += cx - (w.left + w.width / 3);
 }
+// quand le clavier s'ouvre/ferme (iOS surtout), on ajuste la hauteur et on garde le curseur visible
 if (window.visualViewport) {
   const f = () => { document.body.style.height = window.visualViewport.height + 'px'; setTimeout(scrollToCursor, 50); };
   window.visualViewport.addEventListener('resize', f);
@@ -491,7 +464,7 @@ cv.addEventListener('click', async (e) => {
     if (DB_URL && !user && mode !== 'read') { showLogin(); return; }
     if (mode === 'write') {
       cursor = p; startX = p.x; blink = true; draw();
-      kb.focus({ preventScroll: true });
+      kb.focus({ preventScroll: true });          // ouvre le clavier directement
       setTimeout(scrollToCursor, 300);
     } else if (mode === 'bomb') {
       const patch = {};
@@ -513,7 +486,7 @@ cv.addEventListener('click', async (e) => {
 async function refresh() {
   try {
     const fresh = await loadCells();
-    const overlay = { ...inflight, ...pending };
+    const overlay = { ...inflight, ...pending };     // ce que je suis en train d'écrire reste affiché
     for (const k in overlay) { if (overlay[k] === null) delete fresh[k]; else fresh[k] = overlay[k]; }
     cells = fresh; draw();
   } catch {}
