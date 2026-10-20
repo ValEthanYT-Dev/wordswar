@@ -128,6 +128,7 @@
   <div class="seg">
     <button id="mWrite" class="on">✍️ Écrire</button>
     <button id="mBomb">💣 Bombe</button>
+    <button id="mMegaBomb" title="Effacer toutes les lettres du mur">☢️ Méga-bombe</button>
     <button id="mRead">🔍 Lire</button>
   </div>
 </div>
@@ -380,8 +381,28 @@ async function patchCells(obj) {
   }
   const t = await getToken();
   if (!t) { showLogin(); throw new Error('Non connecté'); }
-  const r = await fetch(DB_URL + '/chunks.json?auth=' + encodeURIComponent(t), { method: 'PATCH', body: JSON.stringify(obj) });
-  if (!r.ok) throw new Error('Erreur serveur');
+  // Écrire chunk par chunk : les règles Firebase peuvent alors distinguer
+  // l'écriture d'une cellule (joueur connecté) de l'effacement d'un chunk entier (admin).
+  const byChunk = {};
+  for (const path in obj) {
+    const slash = path.indexOf('/');
+    const ck = slash < 0 ? path : path.slice(0, slash);
+    const cell = slash < 0 ? null : path.slice(slash + 1);
+    if (!byChunk[ck]) byChunk[ck] = { cells: {}, clear: false };
+    if (cell === null) byChunk[ck].clear = obj[path] === null;
+    else byChunk[ck].cells[cell] = obj[path];
+  }
+  for (const ck of Object.keys(byChunk)) {
+    const group = byChunk[ck];
+    const url = DB_URL + '/chunks/' + encodeURIComponent(ck) + '.json?auth=' + encodeURIComponent(t);
+    let r;
+    if (group.clear && Object.keys(group.cells).length === 0) {
+      r = await fetch(url, { method: 'DELETE' });
+    } else {
+      r = await fetch(url, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(group.cells) });
+    }
+    if (!r.ok) throw new Error('Erreur serveur (' + r.status + ')');
+  }
 }
 function canWrite() { return !locked || isAdmin; }
 function setCell(x, y, val) {
@@ -802,6 +823,23 @@ function setMode(m) {
 $('mWrite').onclick = () => setMode('write');
 $('mBomb').onclick = () => setMode('bomb');
 $('mRead').onclick = () => setMode('read');
+$('mMegaBomb').onclick = async () => {
+  if (DB_URL && !user) { showLogin(false); return; }
+  if (!canWrite()) { toast('🔒 Le mur est verrouillé'); return; }
+  if (!window.confirm('☢️ MÉGA-BOMBE : effacer TOUTES les lettres de Wordswar pour tout le monde ? Cette action est irréversible.')) return;
+  try {
+    clearTimeout(flushTimer); pending = {}; inflight = {};
+    if (!DB_URL) { ls('tw_chunks', '{}'); }
+    else {
+      const t = await getToken();
+      const r = await fetch(DB_URL + '/chunks.json?auth=' + encodeURIComponent(t), { method: 'DELETE' });
+      if (!r.ok) throw new Error('refus');
+    }
+    for (const ck in chunks) delete chunks[ck];
+    toast('☢️ BOUM ! Tout le mur a été vidé.');
+    requestDraw(); scheduleSync();
+  } catch { toast('Échec de la méga-bombe : vérifie la connexion et les règles Firebase'); }
+};
 
 // ====== ÉCRITURE AU CLAVIER ======
 function refocus() { if (mode === 'write' && cursor) kb.focus({ preventScroll: true }); }
