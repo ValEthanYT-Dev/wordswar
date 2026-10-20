@@ -38,12 +38,16 @@
   #linkRow button { font:inherit; font-weight:600; border:0; border-radius:10px; padding:0 16px; cursor:pointer; color:#fff; background:var(--acc2); }
   .meBtn { font:inherit; font-size:14px; color:var(--txt); background:#0d0f15; border:1px solid var(--line); border-radius:10px; padding:8px 12px; cursor:pointer; }
   #adminBtn { border-color:var(--acc); }
-  #superBadge { display:none; border:1px solid #e8c84a; color:#e8c84a; border-radius:999px; padding:4px 9px; font-size:12px; font-weight:700; }
-  #superBadge.on { display:inline-flex; }
+  #superBadge { display:none; border:1px solid #e8c84a; border-radius:999px; padding:7px 10px; font-size:12px; font-weight:800; cursor:pointer; background:#0d0f15; }
+  #superBadge.on { display:inline-flex; background-image:linear-gradient(90deg,#ff4d4d,#ffb84d,#fff34d,#54e879,#43c5ff,#a56bff,#ff65c5); color:transparent; -webkit-background-clip:text; background-clip:text; }
+  .online-count { flex:0 0 auto; white-space:nowrap; font-size:12px; color:#35e879; border:1px solid #35e87955; border-radius:999px; padding:6px 9px; }
   #admin .super-only { display:none; }
   #admin.super-mode .super-only { display:block; }
   #admin.super-mode .super-inline { display:inline-flex; }
   #admin .super-inline { display:none; }
+  .admin-list { max-height:180px; overflow:auto; border:1px solid var(--line); border-radius:10px; padding:8px; font-size:13px; }
+  .admin-list .admin-user { padding:5px 2px; border-bottom:1px solid var(--line); overflow-wrap:anywhere; }
+  .admin-list .admin-user:last-child { border-bottom:0; }
 
   /* connexion */
   #login { position:fixed; inset:0; background:#0d0f15f2; display:none; align-items:center; justify-content:center; z-index:20; padding:16px; }
@@ -181,7 +185,8 @@
   <span id="lockPill">🔒 Verrouillé</span>
   <input id="name" placeholder="Pseudo" maxlength="20">
   <button id="adminBtn" class="meBtn" hidden>🛡️ Admin</button>
-  <span id="superBadge" aria-live="polite">★ SUPER ADMIN</span>
+  <button id="superBadge" class="meBtn" aria-live="polite" hidden>🌈 SUPER ADMIN</button>
+  <span id="onlineCount" class="online-count" aria-live="polite">🟢 0 en ligne</span>
 
   <div class="seg">
     <button id="mWrite" class="on">✍️ Écrire</button>
@@ -239,9 +244,11 @@
     <h3>★ Mode Super Admin</h3>
     <button class="ab full" id="superModeToggle" type="button" style="margin-top:0">Activer le mode Super Admin</button>
     <small>Accès réservé aux UID présents dans /superAdmins.</small>
-    <div class="row" style="margin-top:8px"><input id="superTargetUid" type="text" placeholder="UID Firebase à gérer" autocomplete="off"><button class="ab" id="superGrantAdmin" type="button">Promouvoir admin</button></div>
-    <button class="ab full danger" id="superRevokeAdmin" type="button">Retirer les droits admin de cet UID</button>
-    <small>Ces actions modifient /admins. Ne saisis que l’UID exact du compte.</small>
+    <div class="row" style="margin-top:8px"><input id="superTargetPseudo" type="text" placeholder="Pseudo du joueur à promouvoir" autocomplete="off"><button class="ab" id="superGrantAdmin" type="button">Promouvoir admin</button></div>
+    <div class="row" style="margin-top:8px"><input id="superRevokePseudo" type="text" placeholder="Pseudo admin à rétrograder" autocomplete="off"><button class="ab danger" id="superRevokeAdmin" type="button">Retirer</button></div>
+    <button class="ab full" id="superRefreshAdmins" type="button">Actualiser la liste des administrateurs</button>
+    <div id="superAdminList" class="admin-list">Connecte-toi en Super Admin pour afficher la liste.</div>
+    <small>Les joueurs doivent s’être connectés au moins une fois avec cette version pour que leur pseudo soit associé à leur UID Firebase.</small>
   </section>
 
   <section>
@@ -515,7 +522,7 @@ async function authCall(method, body) {
 }
 function authMsg(e) {
   const m = String(e.message || e);
-  if (m.includes('NOT_ADMIN')) return 'Ce compte n\'est pas administrateur.';
+  if (m.includes('NOT_ADMIN')) return 'Ce compte n’est ni Admin ni Super Admin dans Firebase (/admins ou /superAdmins).';
   if (m.includes('EMAIL_EXISTS')) return 'Ce pseudo est déjà pris.';
   if (m.includes('WEAK_PASSWORD')) return 'Mot de passe trop court (6 caractères minimum).';
   if (m.includes('INVALID_LOGIN') || m.includes('EMAIL_NOT_FOUND') || m.includes('INVALID_PASSWORD')) return 'Pseudo ou mot de passe incorrect.';
@@ -527,7 +534,7 @@ function authMsg(e) {
 function saveSession() { ls('tw_session', JSON.stringify({ name: user.name, uid: user.uid, refreshToken: user.refreshToken })); }
 function setSession(j, name) {
   user = { name, uid: j.localId || '', refreshToken: j.refreshToken, idToken: j.idToken, exp: Date.now() + (parseInt(j.expiresIn) || 3600) * 1000 };
-  saveSession(); updateMe();
+  saveSession(); updateMe(); startPresence();
 }
 async function signIn(pseudo, pass) {
   const j = await authCall('signInWithPassword', { email: pseudoEmail(pseudo), password: pass, returnSecureToken: true });
@@ -538,6 +545,42 @@ async function signUp(pseudo, pass) {
   await authCall('update', { idToken: j.idToken, displayName: pseudo, returnSecureToken: false });
   await signIn(pseudo, pass);     // nouveau jeton qui contient le pseudo
 }
+
+let presenceTimer = null;
+async function publishProfileAndPresence() {
+  if (!DB_URL || !user || !user.uid) return;
+  try {
+    const t = await getToken(); if (!t || !user) return;
+    const auth = '?auth=' + encodeURIComponent(t);
+    const profile = await fetch(DB_URL + '/profiles/' + encodeURIComponent(user.uid) + '.json' + auth, {
+      method: 'PUT', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ uid:user.uid, name:user.name, nameKey:user.name.toLowerCase(), updatedAt:Date.now() })
+    });
+    const presence = await fetch(DB_URL + '/presence/' + encodeURIComponent(user.uid) + '.json' + auth, {
+      method: 'PUT', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ name:user.name, lastSeen:Date.now() })
+    });
+    if (!profile.ok || !presence.ok) console.warn('Présence/profil non enregistrés : vérifier les règles Firebase /profiles et /presence.');
+  } catch {}
+}
+function startPresence() {
+  clearInterval(presenceTimer);
+  publishProfileAndPresence();
+  presenceTimer = setInterval(publishProfileAndPresence, 15000);
+  updateOnlineCount();
+}
+async function updateOnlineCount() {
+  const out = $('onlineCount'); if (!out) return;
+  if (!DB_URL) { out.textContent = '🟢 Mode local'; return; }
+  try {
+    const r = await fetch(DB_URL + '/presence.json');
+    if (!r.ok) throw new Error('presence');
+    const data = await r.json() || {}, cutoff = Date.now() - 45000;
+    const count = Object.values(data).filter(v => v && Number(v.lastSeen) >= cutoff).length;
+    out.textContent = '🟢 ' + count + ' en ligne';
+  } catch { out.textContent = '🟢 — en ligne'; }
+}
+setInterval(updateOnlineCount, 15000);
 function googleName(j) {
   const n = String(j.displayName || (j.email || '').split('@')[0] || 'Joueur').replace(/\s+/g, ' ').trim();
   return n.slice(0, 20) || 'Joueur';
@@ -580,11 +623,17 @@ async function getToken() {
     return user.idToken;
   } catch { signOut(); return null; }
 }
-function signOut() { user = null; isAdmin = false; isSuperAdmin = false; superMode = false; ls('tw_session', ''); closeAdmin(); updateMe(); }
+function signOut() {
+  const old = user;
+  clearInterval(presenceTimer); presenceTimer = null;
+  if (old && old.uid && DB_URL) getToken().then(t => t && fetch(DB_URL + '/presence/' + encodeURIComponent(old.uid) + '.json?auth=' + encodeURIComponent(t), {method:'DELETE'})).catch(()=>{});
+  user = null; isAdmin = false; isSuperAdmin = false; superMode = false; ls('tw_session', ''); closeAdmin(); updateMe();
+}
 function updateMe() {
   $('me').textContent = user ? '👤 ' + user.name : '🔑 Connexion';
   $('adminBtn').hidden = !isAdmin;
-  $('superBadge').classList.toggle('on', isSuperAdmin);
+  $('adminBtn').textContent = isSuperAdmin ? '🌈 Super Admin' : '🛡️ Admin';
+  $('superBadge').hidden = !isSuperAdmin; $('superBadge').classList.toggle('on', isSuperAdmin);
   $('admin').classList.toggle('super-mode', isSuperAdmin && superMode);
   const sm = $('superModeToggle'); if (sm) sm.textContent = superMode ? 'Désactiver le mode Super Admin' : 'Activer le mode Super Admin';
   // La Méga-bombe n'est même pas affichée aux comptes non administrateurs.
@@ -621,7 +670,8 @@ async function afterLogin() {
   await checkAdmin();
   if (adminMode) {
     if (!isAdmin) { signOut(); throw new Error('NOT_ADMIN'); }
-    hideLogin(); openAdmin();
+    if (isSuperAdmin) superMode = true;
+    hideLogin(); openAdmin(); if (isSuperAdmin) refreshSuperAdminList();
   } else hideLogin();
 }
 function setAdminMode(on) {
@@ -644,10 +694,6 @@ function hideLogin() { $('login').style.display = 'none'; $('loginErr').textCont
 async function doAuth(fn) {
   if (!DB_URL || !API_KEY) { $('loginErr').textContent = 'Firebase n\'est pas configuré : remplis DB_URL et API_KEY dans index.html.'; return; }
   const p = $('lUser').value.trim(), w = $('lPass').value;
-  if (adminMode && (p !== 'V4L3N7IN_ADMIN' || w !== 'ADMIN124%')) {
-    $('loginErr').textContent = 'Identifiants administrateur incorrects.';
-    return;
-  }
   if (!/^[A-Za-z0-9_]{3,20}$/.test(p)) { $('loginErr').textContent = 'Pseudo : 3 à 20 lettres, chiffres ou _'; return; }
   if (w.length < 6) { $('loginErr').textContent = 'Mot de passe : 6 caractères minimum'; return; }
   $('loginErr').textContent = '…';
@@ -692,22 +738,7 @@ function draw() {
   if (cv.width !== pw || cv.height !== ph) { cv.width = pw; cv.height = ph; cv.style.width = vw + 'px'; cv.style.height = vh + 'px'; }
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, pw, ph);
-  // Logo rendu directement dans le bitmap du canvas (pas d'élément HTML superposé).
-  const logoLines = [
-    ' _       __               __                        ',
-    '| |     / /___  _________/ /_____      ______ ______',
-    '| | /| / / __ \/ ___/ __  / ___/ | /| / / __ `/ ___/',
-    '| |/ |/ / /_/ / /  / /_/ (__  )| |/ |/ / /_/ / /    ',
-    '|__/|__/\____/_/   \,__,_/____/ |__/|__/\__,_/_/'
-  ];
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  ctx.font = '900 ' + Math.max(10, Math.min(22, vw * 0.018)) + 'px ui-monospace, Menlo, Consolas, monospace';
-  ctx.textAlign = 'left'; ctx.textBaseline = 'top';
-  const logoGradient = ctx.createLinearGradient(0, 0, Math.min(vw, 700), 0);
-  logoGradient.addColorStop(0, '#6c4dff'); logoGradient.addColorStop(.35, '#8f76ff'); logoGradient.addColorStop(.68, '#d2a8ff'); logoGradient.addColorStop(1, '#ffb8e8');
-  ctx.fillStyle = logoGradient;
-  const logoLineHeight = Math.max(11, Math.min(24, vw * 0.019));
-  logoLines.forEach((line, i) => ctx.fillText(line, 0, i * logoLineHeight));
   const k = dpr * zoom;
   ctx.setTransform(k, 0, 0, k, -camX * k, -camY * k);
 
@@ -1117,28 +1148,62 @@ function setAdminPosition(position) {
 function openAdmin() { if (!isAdmin) return; $('admin').classList.add('open'); updateMe(); updateStats(); }
 function closeAdmin() { $('admin').classList.remove('open'); }
 $('adminBtn').onclick = () => ($('admin').classList.contains('open') ? closeAdmin() : openAdmin());
+$('superBadge').onclick = () => { if (!isSuperAdmin) return; superMode = true; updateMe(); openAdmin(); refreshSuperAdminList(); }; 
 $('adClose').onclick = closeAdmin;
 
 $('superModeToggle').onclick = () => {
   if (!isSuperAdmin) { toast('Accès Super Admin refusé'); return; }
   superMode = !superMode; updateMe();
   toast(superMode ? '★ Mode Super Admin activé' : 'Mode Super Admin désactivé');
+  if (superMode) refreshSuperAdminList(); else $('superAdminList').textContent = 'Active le mode Super Admin pour consulter les administrateurs.';
 };
+async function fetchRoleData(path) {
+  const t = await getToken(); if (!t) throw new Error('session');
+  const r = await fetch(DB_URL + '/' + path + '.json?auth=' + encodeURIComponent(t));
+  if (!r.ok) throw new Error('rules');
+  return (await r.json()) || {};
+}
+async function refreshSuperAdminList() {
+  const box = $('superAdminList'); if (!box) return;
+  if (!isSuperAdmin || !superMode) { box.textContent = 'Active le mode Super Admin pour consulter les administrateurs.'; return; }
+  box.textContent = 'Chargement…';
+  try {
+    const [admins, supers, profiles] = await Promise.all([fetchRoleData('admins'), fetchRoleData('superAdmins'), fetchRoleData('profiles')]);
+    const ids = new Set([...Object.keys(admins || {}).filter(id => admins[id] === true), ...Object.keys(supers || {}).filter(id => supers[id] === true)]);
+    const entries = [...ids].map(uid => ({uid, name:(profiles[uid] && profiles[uid].name) || 'Pseudo inconnu'})).sort((a,b)=>a.name.localeCompare(b.name));
+    box.replaceChildren();
+    if (!entries.length) { box.textContent = 'Aucun administrateur trouvé.'; return; }
+    for (const entry of entries) {
+      const div = document.createElement('div'); div.className = 'admin-user';
+      const role = supers[entry.uid] === true ? '🌈 Super Admin' : '🟢 Admin';
+      div.textContent = entry.name + ' — ' + role;
+      box.appendChild(div);
+    }
+  } catch { box.textContent = 'Impossible de lire la liste. Vérifie les règles Firebase pour /admins, /superAdmins et /profiles.'; }
+}
 async function setManagedAdmin(revoke) {
   if (!isSuperAdmin || !superMode) { toast('Active d’abord le mode Super Admin'); return; }
-  const uid = $('superTargetUid').value.trim();
-  if (!uid || uid.length < 8 || /[.#$\[\]\/]/.test(uid)) { toast('Saisis un UID Firebase valide'); return; }
-  if (user && uid === user.uid && revoke) { toast('Tu ne peux pas retirer tes propres droits ici'); return; }
+  const field = $(revoke ? 'superRevokePseudo' : 'superTargetPseudo');
+  const pseudo = field.value.trim().toLowerCase();
+  if (!pseudo) { toast('Saisis le pseudo du joueur'); return; }
   try {
+    const [profiles, admins, supers] = await Promise.all([fetchRoleData('profiles'), fetchRoleData('admins'), fetchRoleData('superAdmins')]);
+    const match = Object.entries(profiles).find(([uid, profile]) => profile && String(profile.name || '').trim().toLowerCase() === pseudo);
+    if (!match) { toast('Pseudo introuvable : le joueur doit se connecter au moins une fois avec cette version.'); return; }
+    const uid = match[0];
+    if (user && uid === user.uid && revoke) { toast('Tu ne peux pas retirer tes propres droits ici'); return; }
+    if (supers[uid] === true) { toast('Ce joueur est Super Admin : ses droits doivent être gérés séparément.'); return; }
     const t = await getToken(); if (!t) throw new Error('session');
     const url = DB_URL + '/admins/' + encodeURIComponent(uid) + '.json?auth=' + encodeURIComponent(t);
     const r = await fetch(url, { method: revoke ? 'DELETE' : 'PUT', headers: {'Content-Type':'application/json'}, body: revoke ? undefined : 'true' });
     if (!r.ok) throw new Error('rules');
-    toast(revoke ? 'Droits admin retirés' : 'Compte promu administrateur');
+    field.value = ''; toast(revoke ? 'Droits admin retirés à ' + match[1].name : match[1].name + ' est maintenant administrateur');
+    await checkAdmin(); await refreshSuperAdminList();
   } catch { toast('Échec : vérifie les règles Firebase Super Admin'); }
 }
 $('superGrantAdmin').onclick = () => setManagedAdmin(false);
 $('superRevokeAdmin').onclick = () => setManagedAdmin(true);
+$('superRefreshAdmins').onclick = refreshSuperAdminList;
 
 document.querySelectorAll('[data-admin-position]').forEach((btn) => {
   btn.onclick = () => setAdminPosition(btn.dataset.adminPosition);
