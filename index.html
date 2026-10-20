@@ -168,6 +168,7 @@
     #admin[data-position="top"], #admin[data-position="bottom"] { max-height:82dvh; }
     #admin { gap:8px; padding:8px 12px; }
   }
+.tool.active{outline:2px solid #e8c84a;background:#34346f!important}.fmt{font-weight:800;min-width:34px}
 </style>
 </head>
 <body>
@@ -219,6 +220,9 @@
   <div id="swatches"></div>
   <button class="tool" id="customWrap" title="Autre couleur"><div id="customDot"></div></button>
   <button class="tool" id="linkBtn" title="Ajouter un lien">🔗</button>
+  <button class="tool fmt" id="fmtBold" title="Gras (Ctrl+B)"><b>B</b></button>
+  <button class="tool fmt" id="fmtItalic" title="Italique (Ctrl+I)"><i>I</i></button>
+  <button class="tool fmt" id="fmtUnderline" title="Souligné (Ctrl+U)"><u>U</u></button>
 </div>
 <div id="dockInfo"></div>
 
@@ -706,8 +710,9 @@ function draw() {
         const i = lk.indexOf(','), x = ox + +lk.slice(0, i), y = oy + +lk.slice(i + 1);
         if (x < x0 || x > x1 || y < y0 || y > y1) continue;
         ctx.fillStyle = safeCol(c.col);
+        ctx.font = (c.b ? 'bold ' : '') + (c.i ? 'italic ' : '') + FONT + 'px ui-monospace, Menlo, Consolas, monospace';
         ctx.fillText(c.c.slice(0, 2), x * CW + CW / 2, y * CHT + CHT / 2 + 1);
-        if (safeUrl(c.u)) ctx.fillRect(x * CW + 1, y * CHT + CHT - 3, CW - 2, 1.5);
+        if (c.uLine || safeUrl(c.u)) ctx.fillRect(x * CW + 1, y * CHT + CHT - 3, CW - 2, 1.5);
       }
     }
   }
@@ -966,12 +971,16 @@ $('mMegaBomb').onclick = async () => {
 function refocus() { if (mode === 'write' && cursor) kb.focus({ preventScroll: true }); }
 function resetKb() { kb.value = SENT; try { kb.setSelectionRange(1, 1); } catch {} }
 
-function typeChar(ch) {
+let textFormat = { b: false, i: false, uLine: false };
+function typeChar(ch, fmt = textFormat, pastedColor = null) {
   if (!cursor) return;
   if (!canWrite()) { toast('🔒 Le mur est verrouillé'); return; }
-  setCell(cursor.x, cursor.y, { c: ch, col: color, u: link, by: myName(), adm: !!isAdmin, byUid: user ? user.uid : '' });
+  setCell(cursor.x, cursor.y, { c: ch, col: pastedColor || color, u: link, b: !!fmt.b, i: !!fmt.i, uLine: !!fmt.uLine, by: myName(), adm: !!isAdmin, byUid: user ? user.uid : '' });
   cursor.x++;
 }
+function updateFormatButtons() { [['fmtBold','b'],['fmtItalic','i'],['fmtUnderline','uLine']].forEach(([id,key]) => $(id).classList.toggle('active', !!textFormat[key])); }
+[['fmtBold','b'],['fmtItalic','i'],['fmtUnderline','uLine']].forEach(([id,key]) => $(id).addEventListener('click', () => { textFormat[key] = !textFormat[key]; updateFormatButtons(); refocus(); }));
+updateFormatButtons();
 function newline() { cursor.x = startX; cursor.y++; }
 function backspace() {
   if (!cursor || !canWrite()) return;
@@ -985,6 +994,7 @@ function backspace() {
   setCell(cursor.x, cursor.y, null);
 }
 kb.addEventListener('keydown', (e) => {
+  if (e.ctrlKey || e.metaKey) { const map = { b:'b', i:'i', u:'uLine' }; const key=e.key.toLowerCase(); if (map[key]) { e.preventDefault(); textFormat[map[key]]=!textFormat[map[key]]; updateFormatButtons(); return; } }
   if (!cursor) return;
   if (e.key === 'Enter') { e.preventDefault(); newline(); }
   else if (e.key === 'Backspace') { e.preventDefault(); backspace(); }
@@ -1001,6 +1011,41 @@ kb.addEventListener('input', () => {                 // mobile + collage + accen
   if (!v.includes(SENT)) { backspace(); }            // la sentinelle a disparu = touche effacer
   else { for (const ch of [...v.replace(/\u200b/g, '')]) { if (ch === '\n') newline(); else if (ch.trim()) typeChar(ch); else if (ch === ' ') cursor.x++; } }
   resetKb(); blink = true; requestDraw(); ensureCursorVisible();
+});
+kb.addEventListener('paste', (e) => {
+  if (!cursor) return;
+  e.preventDefault();
+  if (!canWrite()) { toast('🔒 Le mur est verrouillé'); return; }
+  const html = e.clipboardData?.getData('text/html');
+  const plain = e.clipboardData?.getData('text/plain') || '';
+  let rows = [[]];
+  if (html) {
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    const rgbToHex = v => { const m=v.match(/\d+/g); return m&&m.length>=3 ? '#'+m.slice(0,3).map(n=>(+n).toString(16).padStart(2,'0')).join('') : null; };
+    const walk = (node, style={}) => {
+      if (node.nodeType === Node.TEXT_NODE) {
+        const lines=node.nodeValue.replace(/\r/g,'').split('\n');
+        lines.forEach((line,i)=>{ for(const ch of line) rows[rows.length-1].push({ch,style}); if(i<lines.length-1) rows.push([]); }); return;
+      }
+      if(node.nodeType!==Node.ELEMENT_NODE && node.nodeType!==Node.DOCUMENT_NODE) return;
+      let st={...style};
+      if(node.nodeType===Node.ELEMENT_NODE){
+        const tag=node.tagName.toLowerCase(), css=node.getAttribute('style')||'';
+        if(['b','strong'].includes(tag)||/font-weight\s*:\s*(bold|[6-9]00)/i.test(css)) st.b=true;
+        if(['i','em'].includes(tag)||/font-style\s*:\s*italic/i.test(css)) st.i=true;
+        if(tag==='u'||/text-decoration[^;]*underline/i.test(css)) st.uLine=true;
+        const m=css.match(/(?:^|;)\s*color\s*:\s*(#[0-9a-f]{3,8}|rgb\([^)]*\))/i);
+        if(m) st.col=m[1].startsWith('#')?m[1]:rgbToHex(m[1]);
+        if(['div','p','li','br'].includes(tag)&&rows[rows.length-1].length) rows.push([]);
+      }
+      for(const child of node.childNodes) walk(child,st);
+      if(node.nodeType===Node.ELEMENT_NODE&&['div','p','li'].includes(node.tagName.toLowerCase())&&rows[rows.length-1].length) rows.push([]);
+    };
+    walk(doc.body);
+  } else rows=plain.replace(/\r/g,'').split('\n').map(line=>[...line].map(ch=>({ch,style:{}})));
+  while(rows.length>1&&!rows[rows.length-1].length) rows.pop();
+  rows.forEach((row,ri)=>{if(ri)newline(); row.forEach(it=>typeChar(it.ch,it.style,it.style.col));});
+  resetKb(); blink=true; requestDraw(); ensureCursorVisible();
 });
 kb.addEventListener('focus', resetKb);
 
