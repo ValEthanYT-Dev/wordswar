@@ -512,6 +512,8 @@ async function flush() {
 // ====== COMPTE (pseudo + mot de passe, via Firebase Auth) ======
 let user = null;       // { name, uid, refreshToken, idToken, exp }
 let isAdmin = false, isSuperAdmin = false, superMode = false, adminMode = false, locked = false;
+const adminUIDs = new Set(), superAdminUIDs = new Set();   // ← manquaient : ReferenceError avalée par le catch
+let roleDiag = '';                                          // dernier diagnostic de lecture des rôles
 const AUTH_URL = 'https://identitytoolkit.googleapis.com/v1/accounts:';
 const pseudoEmail = (p) => p.toLowerCase() + '@textwar.example';
 const myName = () => (user ? user.name : 'Anonyme').slice(0, 20);
@@ -526,7 +528,7 @@ function authMsg(e) {
   const m = String(e.message || e);
   if (m.includes('NOT_ADMIN')) {
     const connectedUid = user && user.uid ? user.uid : '(UID indisponible)';
-    return 'Ce compte n’est pas reconnu comme admin. UID Firebase actuellement connecté : ' + connectedUid + '. Dans Realtime Database, ajoute exactement /superAdmins/' + connectedUid + ' = true (ou /admins/' + connectedUid + ' = true), puis vérifie les règles de lecture.';
+    return 'Ce compte n’est pas reconnu comme admin. UID Firebase actuellement connecté : ' + connectedUid + '. Dans Realtime Database, ajoute exactement /superAdmins/' + connectedUid + ' = true (ou /admins/' + connectedUid + ' = true), puis vérifie les règles de lecture. Lecture effectuée : ' + (roleDiag || 'aucune') + '.';
   }
   if (m.includes('EMAIL_EXISTS')) return 'Ce pseudo est déjà pris.';
   if (m.includes('WEAK_PASSWORD')) return 'Mot de passe trop court (6 caractères minimum).';
@@ -667,16 +669,19 @@ async function checkAdmin() {
         const adminValue = ar.ok ? await ar.json() : null;
         isSuperAdmin = superValue === true;
         isAdmin = isSuperAdmin || adminValue === true;
+        roleDiag = '/superAdmins/' + user.uid + ' → HTTP ' + sr.status + ', valeur ' + JSON.stringify(superValue) + ' | /admins/' + user.uid + ' → HTTP ' + ar.status + ', valeur ' + JSON.stringify(adminValue);
         if (!sr.ok) console.warn('Wordswar : lecture de /superAdmins/' + user.uid + ' refusée (HTTP ' + sr.status + '). Vérifie les règles Firebase.');
         else if (superValue !== true) console.info('Wordswar : /superAdmins/' + user.uid + ' vaut ' + JSON.stringify(superValue) + ', donc cet UID n’est pas Super Admin.');
         if (!ar.ok) console.warn('Wordswar : lecture de /admins/' + user.uid + ' refusée (HTTP ' + ar.status + '). Vérifie les règles Firebase.');
         else if (adminValue !== true) console.info('Wordswar : /admins/' + user.uid + ' vaut ' + JSON.stringify(adminValue) + ', donc cet UID n’est pas Admin.');
         adminUIDs.clear(); superAdminUIDs.clear();
+        try {
         if (allSr.ok) { const all = await allSr.json(); if (all && typeof all === 'object') Object.keys(all).forEach(uid => { if (all[uid] === true) superAdminUIDs.add(uid); }); }
         if (allAr.ok) { const all = await allAr.json(); if (all && typeof all === 'object') Object.keys(all).forEach(uid => { if (all[uid] === true) adminUIDs.add(uid); }); }
         superAdminUIDs.forEach(uid => adminUIDs.add(uid));
+        } catch (e) { console.warn('Wordswar : liste des rôles illisible', e); }
       }
-    } catch {}
+    } catch (e) { roleDiag = 'erreur : ' + (e && e.message || e); console.error('Wordswar checkAdmin', e); }
   }
   // Un Super Admin possède automatiquement les droits admin et son mode de gestion est activé.
   if (isSuperAdmin) { isAdmin = true; superMode = true; }
