@@ -16,9 +16,14 @@
 
   #local { display:none; font-size:12px; background:#3a2d0a; color:#ffd98a; padding:5px 12px; text-align:center; }
 
-  .top { background:var(--card); border-bottom:1px solid var(--line); padding:10px 14px; display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
-  h1 { font-size:18px; margin:0; letter-spacing:-.3px; }
-  h1 span { background:linear-gradient(135deg,var(--acc),#b9a8ff); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .top { background:var(--card); border-bottom:1px solid var(--line); padding:8px 12px; display:flex; flex-wrap:nowrap; gap:8px; align-items:center; min-height:52px; overflow-x:auto; overflow-y:hidden; scrollbar-width:thin; }
+  h1 { margin:0; display:flex; align-items:center; min-width:0; flex:0 0 auto; line-height:1; align-self:center; }
+  /* Logo ASCII en gras ; Connexion et tous les outils partagent la même ligne. */
+  #asciiHeaderLogo { display:block; margin:0; padding:0; font:900 clamp(4px, .4vw, 6px)/1 ui-monospace,SFMono-Regular,Consolas,monospace; white-space:pre; text-align:left; color:transparent; background-image:linear-gradient(100deg,#6c4dff 0%,#8f76ff 35%,#d2a8ff 68%,#ffb8e8 100%); background-size:100% 100%; -webkit-background-clip:text; background-clip:text; -webkit-text-stroke:.10px #a58aff; paint-order:stroke fill; }
+  .top > #me, .top > h1, .top > #adminBtn, .top > #superBadge { flex:0 0 auto; }
+  .top > .seg { margin-left:auto; flex:0 0 auto; align-self:center; flex-wrap:nowrap; }
+  .top > .seg button { white-space:nowrap; }
+  @media (max-width:720px) { .top { flex-wrap:nowrap; } #asciiHeaderLogo { font-size:clamp(3.5px, .7vw, 4.8px); } .top > .seg { margin-left:auto; } .seg button { padding:6px 7px; font-size:12px; } }
   #lockPill { display:none; font-size:12px; color:#ffd98a; background:#3a2d0a; border-radius:20px; padding:4px 10px; }
 
   #name { display:none !important; }
@@ -33,6 +38,15 @@
   #linkRow button { font:inherit; font-weight:600; border:0; border-radius:10px; padding:0 16px; cursor:pointer; color:#fff; background:var(--acc2); }
   .meBtn { font:inherit; font-size:14px; color:var(--txt); background:#0d0f15; border:1px solid var(--line); border-radius:10px; padding:8px 12px; cursor:pointer; }
   #adminBtn { border-color:var(--acc); }
+  /* Logo ASCII ancré au coin (0,0) du canevas blanc, au-dessus du canvas de dessin. */
+  #asciiLogo { position:absolute; top:0; left:0; z-index:2; display:block; margin:0; padding:0 0 .35em 0; overflow:visible; color:transparent; background-image:linear-gradient(100deg,#6c4dff 0%,#8f76ff 35%,#d2a8ff 68%,#ffb8e8 100%); background-size:100% 100%; -webkit-background-clip:text; background-clip:text; font:700 clamp(10px, 1.25vw, 20px)/1.2 ui-monospace,SFMono-Regular,Consolas,monospace; white-space:pre; text-align:left; pointer-events:none; user-select:none; -webkit-user-select:none; }
+  @media (max-width:560px) { #asciiLogo { font-size:clamp(9px, 2.2vw, 12px); } }
+  #superBadge { display:none; border:1px solid #e8c84a; color:#e8c84a; border-radius:999px; padding:4px 9px; font-size:12px; font-weight:700; }
+  #superBadge.on { display:inline-flex; }
+  #admin .super-only { display:none; }
+  #admin.super-mode .super-only { display:block; }
+  #admin.super-mode .super-inline { display:inline-flex; }
+  #admin .super-inline { display:none; }
 
   /* connexion */
   #login { position:fixed; inset:0; background:#0d0f15f2; display:none; align-items:center; justify-content:center; z-index:20; padding:16px; }
@@ -142,8 +156,8 @@
   }
   @media (max-width:560px) {
     h1 { font-size:16px; }
-    .seg { flex-wrap:wrap; }
-    .seg button { padding:7px 9px; font-size:13px; }
+    .seg { flex-wrap:nowrap; flex-shrink:0; }
+    .seg button { padding:5px 6px; font-size:12px; white-space:nowrap; }
     #admin[data-position="left"], #admin[data-position="right"] { width:min(360px, 92vw); max-width:100vw; height:100dvh; }
     #admin[data-position="top"], #admin[data-position="bottom"] { max-height:72dvh; }
     #admin[data-position="top"] #adStats, #admin[data-position="bottom"] #adStats { grid-template-columns:repeat(2,minmax(0,1fr)); }
@@ -160,11 +174,17 @@
 <div id="local">⚠️ Mode local : Firebase n'est pas configuré, personne d'autre ne voit tes textes (voir le README).</div>
 
 <div class="top">
-  <h1>🧱 <span>Wordswar</span></h1>
+  <button id="me" class="meBtn">🔑 Connexion</button>
+  <h1 aria-label="Wordswar"><pre id="asciiHeaderLogo"> _       __               __                        
+| |     / /___  _________/ /_____      ______ ______
+| | /| / / __ \/ ___/ __  / ___/ | /| / / __ `/ ___/
+| |/ |/ / /_/ / /  / /_/ (__  )| |/ |/ / /_/ / /    
+|__/|__/\____/_/   \__,_/____/ |__/|__/\__,_/_/</pre></h1>
   <span id="lockPill">🔒 Verrouillé</span>
   <input id="name" placeholder="Pseudo" maxlength="20">
-  <button id="me" class="meBtn">🔑 Connexion</button>
   <button id="adminBtn" class="meBtn" hidden>🛡️ Admin</button>
+  <span id="superBadge" aria-live="polite">★ SUPER ADMIN</span>
+
   <div class="seg">
     <button id="mWrite" class="on">✍️ Écrire</button>
     <button id="mBomb">💣 Bombe</button>
@@ -175,6 +195,11 @@
 
 <div id="wrap">
   <canvas id="cv"></canvas>
+  <pre id="asciiLogo" aria-label="WORDSWAR — logo ASCII permanent"> _       __               __                        
+| |     / /___  _________/ /_____      ______ ______
+| | /| / / __ \/ ___/ __  / ___/ | /| / / __ `/ ___/
+| |/ |/ / /_/ / /  / /_/ (__  )| |/ |/ / /_/ / /    
+|__/|__/\____/_/   \__,_/____/ |__/|__/\__,_/_/</pre>
   <div id="zoomBox">
     <button id="zOut" title="Dézoomer (Ctrl + molette)">−</button>
     <button id="zLbl" title="Revenir à 100 %">100 %</button>
@@ -213,6 +238,15 @@
 <!-- panel admin -->
 <aside id="admin" aria-label="Panel admin">
   <header><b>🛡️ Panel admin</b><button class="ab" id="adClose" title="Fermer">✕</button></header>
+
+  <section id="superAdminSection" class="super-only">
+    <h3>★ Mode Super Admin</h3>
+    <button class="ab full" id="superModeToggle" type="button" style="margin-top:0">Activer le mode Super Admin</button>
+    <small>Accès réservé aux UID présents dans /superAdmins.</small>
+    <div class="row" style="margin-top:8px"><input id="superTargetUid" type="text" placeholder="UID Firebase à gérer" autocomplete="off"><button class="ab" id="superGrantAdmin" type="button">Promouvoir admin</button></div>
+    <button class="ab full danger" id="superRevokeAdmin" type="button">Retirer les droits admin de cet UID</button>
+    <small>Ces actions modifient /admins. Ne saisis que l’UID exact du compte.</small>
+  </section>
 
   <section>
     <h3>État</h3>
@@ -472,7 +506,7 @@ async function flush() {
 
 // ====== COMPTE (pseudo + mot de passe, via Firebase Auth) ======
 let user = null;       // { name, uid, refreshToken, idToken, exp }
-let isAdmin = false, adminMode = false, locked = false;
+let isAdmin = false, isSuperAdmin = false, superMode = false, adminMode = false, locked = false;
 const AUTH_URL = 'https://identitytoolkit.googleapis.com/v1/accounts:';
 const pseudoEmail = (p) => p.toLowerCase() + '@textwar.example';
 const myName = () => (user ? user.name : 'Anonyme').slice(0, 20);
@@ -550,29 +584,37 @@ async function getToken() {
     return user.idToken;
   } catch { signOut(); return null; }
 }
-function signOut() { user = null; isAdmin = false; ls('tw_session', ''); closeAdmin(); updateMe(); }
+function signOut() { user = null; isAdmin = false; isSuperAdmin = false; superMode = false; ls('tw_session', ''); closeAdmin(); updateMe(); }
 function updateMe() {
   $('me').textContent = user ? '👤 ' + user.name : '🔑 Connexion';
   $('adminBtn').hidden = !isAdmin;
+  $('superBadge').classList.toggle('on', isSuperAdmin);
+  $('admin').classList.toggle('super-mode', isSuperAdmin && superMode);
+  const sm = $('superModeToggle'); if (sm) sm.textContent = superMode ? 'Désactiver le mode Super Admin' : 'Activer le mode Super Admin';
   // La Méga-bombe n'est même pas affichée aux comptes non administrateurs.
   $('mMegaBomb').hidden = !isAdmin;
 }
-// L'accès admin est décidé côté Firebase : /admins/<uid> doit valoir true (voir règles)
+// Les rôles sont liés à l'UID Firebase : /admins/<uid> et /superAdmins/<uid>.
 async function checkAdmin() {
-  isAdmin = false;
-  // Le statut admin dépend uniquement de l'UID authentifié enregistré dans
-  // /admins/<uid>. Cela fonctionne avec le compte pseudo/mot de passe et Google.
+  isAdmin = false; isSuperAdmin = false;
   if (DB_URL && user && user.uid) {
     try {
       const t = await getToken();
       if (t) {
-        const r = await fetch(DB_URL + '/admins/' + encodeURIComponent(user.uid) + '.json?auth=' + encodeURIComponent(t));
-        isAdmin = r.ok && (await r.json()) === true;
+        const auth = '?auth=' + encodeURIComponent(t);
+        const [sr, ar] = await Promise.all([
+          fetch(DB_URL + '/superAdmins/' + encodeURIComponent(user.uid) + '.json' + auth),
+          fetch(DB_URL + '/admins/' + encodeURIComponent(user.uid) + '.json' + auth)
+        ]);
+        isSuperAdmin = sr.ok && (await sr.json()) === true;
+        isAdmin = isSuperAdmin || (ar.ok && (await ar.json()) === true);
       }
     } catch {}
   }
+  if (!isSuperAdmin) superMode = false;
   updateMe(); return isAdmin;
 }
+
 async function afterLogin() {
   await checkAdmin();
   if (adminMode) {
@@ -901,6 +943,7 @@ function setMode(m) {
 $('mWrite').onclick = () => setMode('write');
 $('mBomb').onclick = () => setMode('bomb');
 $('mRead').onclick = () => setMode('read');
+// Le logo ASCII est un élément fixe du HTML, hors des données du mur : les suppressions de lettres ne peuvent pas l'effacer.
 $('mMegaBomb').onclick = async () => {
   // Garde-fou : seul un compte dont l'UID est autorisé dans /admins peut lancer l'action.
   if (!user || !isAdmin) { toast('🛡️ Méga-bombe réservée aux administrateurs'); return; }
@@ -1001,10 +1044,32 @@ function setAdminPosition(position) {
     btn.classList.toggle('on', btn.dataset.adminPosition === position);
   });
 }
-function openAdmin() { if (!isAdmin) return; $('admin').classList.add('open'); updateStats(); }
+function openAdmin() { if (!isAdmin) return; $('admin').classList.add('open'); updateMe(); updateStats(); }
 function closeAdmin() { $('admin').classList.remove('open'); }
 $('adminBtn').onclick = () => ($('admin').classList.contains('open') ? closeAdmin() : openAdmin());
 $('adClose').onclick = closeAdmin;
+
+$('superModeToggle').onclick = () => {
+  if (!isSuperAdmin) { toast('Accès Super Admin refusé'); return; }
+  superMode = !superMode; updateMe();
+  toast(superMode ? '★ Mode Super Admin activé' : 'Mode Super Admin désactivé');
+};
+async function setManagedAdmin(revoke) {
+  if (!isSuperAdmin || !superMode) { toast('Active d’abord le mode Super Admin'); return; }
+  const uid = $('superTargetUid').value.trim();
+  if (!uid || uid.length < 8 || /[.#$\[\]\/]/.test(uid)) { toast('Saisis un UID Firebase valide'); return; }
+  if (user && uid === user.uid && revoke) { toast('Tu ne peux pas retirer tes propres droits ici'); return; }
+  try {
+    const t = await getToken(); if (!t) throw new Error('session');
+    const url = DB_URL + '/admins/' + encodeURIComponent(uid) + '.json?auth=' + encodeURIComponent(t);
+    const r = await fetch(url, { method: revoke ? 'DELETE' : 'PUT', headers: {'Content-Type':'application/json'}, body: revoke ? undefined : 'true' });
+    if (!r.ok) throw new Error('rules');
+    toast(revoke ? 'Droits admin retirés' : 'Compte promu administrateur');
+  } catch { toast('Échec : vérifie les règles Firebase Super Admin'); }
+}
+$('superGrantAdmin').onclick = () => setManagedAdmin(false);
+$('superRevokeAdmin').onclick = () => setManagedAdmin(true);
+
 document.querySelectorAll('[data-admin-position]').forEach((btn) => {
   btn.onclick = () => setAdminPosition(btn.dataset.adminPosition);
 });
