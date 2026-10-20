@@ -38,9 +38,6 @@
   #linkRow button { font:inherit; font-weight:600; border:0; border-radius:10px; padding:0 16px; cursor:pointer; color:#fff; background:var(--acc2); }
   .meBtn { font:inherit; font-size:14px; color:var(--txt); background:#0d0f15; border:1px solid var(--line); border-radius:10px; padding:8px 12px; cursor:pointer; }
   #adminBtn { border-color:var(--acc); }
-  /* Logo ASCII ancré au coin (0,0) du canevas blanc, au-dessus du canvas de dessin. */
-  #asciiLogo { position:absolute; top:0; left:0; z-index:2; display:block; margin:0; padding:0 0 .35em 0; overflow:visible; color:transparent; background-image:linear-gradient(100deg,#6c4dff 0%,#8f76ff 35%,#d2a8ff 68%,#ffb8e8 100%); background-size:100% 100%; -webkit-background-clip:text; background-clip:text; font:700 clamp(10px, 1.25vw, 20px)/1.2 ui-monospace,SFMono-Regular,Consolas,monospace; white-space:pre; text-align:left; pointer-events:none; user-select:none; -webkit-user-select:none; }
-  @media (max-width:560px) { #asciiLogo { font-size:clamp(9px, 2.2vw, 12px); } }
   #superBadge { display:none; border:1px solid #e8c84a; color:#e8c84a; border-radius:999px; padding:4px 9px; font-size:12px; font-weight:700; }
   #superBadge.on { display:inline-flex; }
   #admin .super-only { display:none; }
@@ -196,11 +193,6 @@
 
 <div id="wrap">
   <canvas id="cv"></canvas>
-  <pre id="asciiLogo" aria-label="WORDSWAR — logo ASCII permanent"> _       __               __                        
-| |     / /___  _________/ /_____      ______ ______
-| | /| / / __ \/ ___/ __  / ___/ | /| / / __ `/ ___/
-| |/ |/ / /_/ / /  / /_/ (__  )| |/ |/ / /_/ / /    
-|__/|__/\____/_/   \__,_/____/ |__/|__/\__,_/_/</pre>
   <div id="zoomBox">
     <button id="zOut" title="Dézoomer (Ctrl + molette)">−</button>
     <button id="zLbl" title="Revenir à 100 %">100 %</button>
@@ -493,7 +485,7 @@ async function patchCells(obj) {
     if (!r.ok) throw new Error('Erreur serveur (' + r.status + ')');
   }
 }
-function canWrite() { return !locked || isAdmin; }
+function canWrite() { return !locked || isAdmin === true; }
 function setCell(x, y, val) {
   const s = split(x, y), ch = ensureChunk(s.ck);
   if (val === null) delete ch.cells[s.lk]; else ch.cells[s.lk] = val;
@@ -606,12 +598,18 @@ async function checkAdmin() {
       const t = await getToken();
       if (t) {
         const auth = '?auth=' + encodeURIComponent(t);
-        const [sr, ar] = await Promise.all([
+        const [sr, ar, allSr, allAr] = await Promise.all([
           fetch(DB_URL + '/superAdmins/' + encodeURIComponent(user.uid) + '.json' + auth),
-          fetch(DB_URL + '/admins/' + encodeURIComponent(user.uid) + '.json' + auth)
+          fetch(DB_URL + '/admins/' + encodeURIComponent(user.uid) + '.json' + auth),
+          fetch(DB_URL + '/superAdmins.json' + auth),
+          fetch(DB_URL + '/admins.json' + auth)
         ]);
         isSuperAdmin = sr.ok && (await sr.json()) === true;
         isAdmin = isSuperAdmin || (ar.ok && (await ar.json()) === true);
+        adminUIDs.clear(); superAdminUIDs.clear();
+        if (allSr.ok) { const all = await allSr.json(); if (all && typeof all === 'object') Object.keys(all).forEach(uid => { if (all[uid] === true) superAdminUIDs.add(uid); }); }
+        if (allAr.ok) { const all = await allAr.json(); if (all && typeof all === 'object') Object.keys(all).forEach(uid => { if (all[uid] === true) adminUIDs.add(uid); }); }
+        superAdminUIDs.forEach(uid => adminUIDs.add(uid));
       }
     } catch {}
   }
@@ -694,6 +692,22 @@ function draw() {
   if (cv.width !== pw || cv.height !== ph) { cv.width = pw; cv.height = ph; cv.style.width = vw + 'px'; cv.style.height = vh + 'px'; }
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, pw, ph);
+  // Logo rendu directement dans le bitmap du canvas (pas d'élément HTML superposé).
+  const logoLines = [
+    ' _       __               __                        ',
+    '| |     / /___  _________/ /_____      ______ ______',
+    '| | /| / / __ \/ ___/ __  / ___/ | /| / / __ `/ ___/',
+    '| |/ |/ / /_/ / /  / /_/ (__  )| |/ |/ / /_/ / /    ',
+    '|__/|__/\____/_/   \,__,_/____/ |__/|__/\__,_/_/'
+  ];
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.font = '900 ' + Math.max(10, Math.min(22, vw * 0.018)) + 'px ui-monospace, Menlo, Consolas, monospace';
+  ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+  const logoGradient = ctx.createLinearGradient(0, 0, Math.min(vw, 700), 0);
+  logoGradient.addColorStop(0, '#6c4dff'); logoGradient.addColorStop(.35, '#8f76ff'); logoGradient.addColorStop(.68, '#d2a8ff'); logoGradient.addColorStop(1, '#ffb8e8');
+  ctx.fillStyle = logoGradient;
+  const logoLineHeight = Math.max(11, Math.min(24, vw * 0.019));
+  logoLines.forEach((line, i) => ctx.fillText(line, 0, i * logoLineHeight));
   const k = dpr * zoom;
   ctx.setTransform(k, 0, 0, k, -camX * k, -camY * k);
 
@@ -738,16 +752,17 @@ function draw() {
       const urlPart = safeUrl(c.u) ? ' · ' + safeUrl(c.u) : '';
       const prefix = 'par ';
       const label = prefix + author + urlPart;
-      const isAuthorAdmin = c.adm === true || author.toUpperCase() === 'V4L3N7IN_ADMIN';
+      const authorUid = String(c.byUid || '');
+      const isAuthorSuperAdmin = c.sup === true || (!!authorUid && superAdminUIDs.has(authorUid));
+      const isAuthorAdmin = isAuthorSuperAdmin || (!!authorUid && adminUIDs.has(authorUid)) || c.adm === true || author.toUpperCase() === 'V4L3N7IN_ADMIN';
       ctx.font = '13px system-ui, sans-serif'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
       const w = ctx.measureText(label).width + 16;
       const sx = (hover.x * CW - camX) * zoom, sy = (hover.y * CHT - camY) * zoom;
       const bx = clamp(sx, 0, Math.max(0, vw - w)), by = Math.max(0, sy - 28);
       ctx.fillStyle = '#161923ee'; ctx.fillRect(bx, by, w, 24);
       const ty = by + 12;
-      if (isAuthorAdmin) {
-        // Le libellé reste blanc, mais chaque caractère du pseudo admin
-        // reçoit une couleur de l'arc-en-ciel.
+      if (isAuthorSuperAdmin) {
+        // Le pseudo du Super Admin est arc-en-ciel.
         let tx = bx + 8;
         ctx.fillStyle = '#fff'; ctx.fillText(prefix, tx, ty);
         tx += ctx.measureText(prefix).width;
@@ -757,6 +772,12 @@ function draw() {
           tx += ctx.measureText(ch).width;
         });
         if (urlPart) { ctx.fillStyle = '#fff'; ctx.fillText(urlPart, tx, ty); }
+      } else if (isAuthorAdmin) {
+        // Le pseudo des administrateurs classiques est vert.
+        ctx.fillStyle = '#35e879'; ctx.fillText(prefix, bx + 8, ty);
+        const prefixWidth = ctx.measureText(prefix).width;
+        ctx.fillStyle = '#35e879'; ctx.fillText(author, bx + 8 + prefixWidth, ty);
+        if (urlPart) { ctx.fillStyle = '#fff'; ctx.fillText(urlPart, bx + 8 + prefixWidth + ctx.measureText(author).width, ty); }
       } else {
         ctx.fillStyle = '#fff'; ctx.fillText(label, bx + 8, ty);
       }
@@ -830,8 +851,12 @@ $('zHome').onclick = () => { centerOn(50, 30); requestDraw(); scheduleSync(); };
 function ensureCursorVisible() {
   if (!cursor) return;
   const sx = (cursor.x * CW - camX) * zoom, sy = (cursor.y * CHT - camY) * zoom;
-  if (sx < 30 || sx > vw - 30 - CW * zoom) camX += (sx - vw / 3) / zoom;
-  if (sy < 40 || sy > vh - 40 - CHT * zoom) camY += (sy - vh / 2) / zoom;
+  // Ne déplace la caméra que si la cellule du curseur sort réellement du canevas.
+  // L'ancien seuil de 30 px faisait sauter la vue quand on écrivait près du bord gauche.
+  if (sx < 0) camX = cursor.x * CW;
+  else if (sx + CW * zoom > vw) camX = cursor.x * CW + CW - vw / zoom;
+  if (sy < 0) camY = cursor.y * CHT;
+  else if (sy + CHT * zoom > vh) camY = cursor.y * CHT + CHT - vh / zoom;
   requestDraw(); scheduleSync();
 }
 // quand le clavier s'ouvre/ferme (iOS surtout), on ajuste la hauteur et on garde le curseur visible
@@ -975,7 +1000,7 @@ let textFormat = { b: false, i: false, uLine: false };
 function typeChar(ch, fmt = textFormat, pastedColor = null) {
   if (!cursor) return;
   if (!canWrite()) { toast('🔒 Le mur est verrouillé'); return; }
-  setCell(cursor.x, cursor.y, { c: ch, col: pastedColor || color, u: link, b: !!fmt.b, i: !!fmt.i, uLine: !!fmt.uLine, by: myName(), adm: !!isAdmin, byUid: user ? user.uid : '' });
+  setCell(cursor.x, cursor.y, { c: ch, col: pastedColor || color, u: link, b: !!fmt.b, i: !!fmt.i, uLine: !!fmt.uLine, by: myName(), adm: !!isAdmin, sup: !!isSuperAdmin, byUid: user ? user.uid : '' });
   cursor.x++;
 }
 function updateFormatButtons() { [['fmtBold','b'],['fmtItalic','i'],['fmtUnderline','uLine']].forEach(([id,key]) => $(id).classList.toggle('active', !!textFormat[key])); }
@@ -1183,21 +1208,39 @@ armConfirm($('adWipe'), 'Tout effacer', async () => {
 });
 $('adMigrate').onclick = async () => {
   if (!DB_URL) return toast('Rien à importer en mode local');
+  if (!isAdmin) return toast('Import réservé aux administrateurs');
   const btn = $('adMigrate'); btn.disabled = true;
   try {
-    const r = await fetch(DB_URL + '/cells.json'); if (!r.ok) throw new Error('lecture');
-    const old = (await r.json()) || {}, patch = {};
-    for (const k in old) {
-      const m = /^(-?\d+),(-?\d+)$/.exec(k), c = old[k];
-      if (!m || !c || typeof c.c !== 'string') continue;
-      const s = split(+m[1], +m[2]); patch[s.ck + '/' + s.lk] = c;
+    const token = await getToken();
+    if (!token) throw new Error('Session expirée : reconnecte-toi');
+    const r = await fetch(DB_URL + '/cells.json?auth=' + encodeURIComponent(token));
+    if (!r.ok) throw new Error('Lecture de /cells refusée (HTTP ' + r.status + ')');
+    const old = (await r.json()) || {}, grouped = {};
+    let count = 0;
+    for (const [key, raw] of Object.entries(old)) {
+      // Ancien format : /cells/"x,y" = {c,col,u,by,...}
+      const m = /^(-?\d+),(-?\d+)$/.exec(key);
+      if (!m || !raw || typeof raw.c !== 'string' || !raw.c.length) continue;
+      const pos = split(+m[1], +m[2]);
+      (grouped[pos.ck] ||= {})[pos.lk] = raw;
+      count++;
     }
-    const keys = Object.keys(patch); if (!keys.length) { toast('Aucune ancienne lettre trouvée'); return; }
-    for (let i = 0; i < keys.length; i += 400) { const part = {}; keys.slice(i, i + 400).forEach((k) => { part[k] = patch[k]; }); await patchCells(part); }
-    for (const ck in chunks) delete chunks[ck];
-    toast('📦 ' + keys.length + ' lettres importées'); scheduleSync();
-  } catch { toast('Échec de l\'import'); }
-  btn.disabled = false; requestDraw();
+    if (!count) throw new Error('Aucune cellule valide trouvée dans /cells. Vérifie que l’ancien mur est bien stocké sous /cells/x,y.');
+    const keys = Object.keys(grouped);
+    for (let i = 0; i < keys.length; i++) {
+      const ck = keys[i];
+      const wr = await fetch(DB_URL + '/chunks/' + encodeURIComponent(ck) + '/cells.json?auth=' + encodeURIComponent(token), {
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(grouped[ck])
+      });
+      if (!wr.ok) throw new Error('Écriture du chunk ' + ck + ' refusée (HTTP ' + wr.status + '). Vérifie les règles Firebase.');
+    }
+    for (const ck in chunks) { chunks[ck].loaded = false; chunks[ck].last = 0; }
+    toast('📦 Import terminé : ' + count + ' lettres dans ' + keys.length + ' chunks');
+    await syncChunks(); requestDraw();
+  } catch (err) {
+    console.error('Import ancien mur:', err);
+    toast('Échec de l’import : ' + (err && err.message ? err.message : 'erreur inconnue'));
+  } finally { btn.disabled = false; }
 };
 
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { if (cpOpen) closeCP(); else if ($('admin').classList.contains('open')) closeAdmin(); else if ($('login').style.display === 'flex') hideLogin(); } });
